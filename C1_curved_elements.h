@@ -9,7 +9,7 @@
 namespace oomph {
 
 namespace MyC1CurvedElements {
-// Now for the TestElement class
+// Now for the BernadouElementBasis class
 // These are based on the curved C1 elements of Bernadou and Boisserie 1994 but
 // adapted for use with the Bell elements rather than Argyris.
 
@@ -61,7 +61,7 @@ namespace MyC1CurvedElements {
 // bivariate polynomial that is constrained to have the aforementioned traces.
 
 template <unsigned BOUNDARY_ORDER>
-class TestElement
+class BernadouElementBasis
 {
 public:
   /// \short typedef for the edge curve
@@ -73,16 +73,16 @@ public:
   /// \short Shorthand for a vector of vectors containining the vertices
   typedef Vector<Vector<double> > VertexList;
   // Constructor
-  TestElement(){}
+  BernadouElementBasis(){}
 
-  TestElement(const VertexList& verts, const double& su, const double&so)
+  BernadouElementBasis(const VertexList& verts, const double& su, const double&so)
     : vertices(verts), s_ubar(su), s_obar(so), Curved_edge(none)
    {
    // Fill in the vectors here - means we only have to calculate them once
    }
 
   // Destructor
-  ~TestElement(){}
+  ~BernadouElementBasis(){}
 
   // Check the element
   inline void self_check() const;
@@ -581,15 +581,15 @@ public:
 
 // Return the number of basis functions on the physical triangle
 template <>
-inline unsigned TestElement<3>::n_basis_functions() const {return 21;}
+inline unsigned BernadouElementBasis<3>::n_basis_functions() const {return 21;}
 
 // Return the number of basis functions on the physical triangle
 template <>
-inline unsigned TestElement<5>::n_basis_functions() const {return 28;}
+inline unsigned BernadouElementBasis<5>::n_basis_functions() const {return 28;}
 
 // Get the edge permutation
 template <unsigned BOUNDARY_ORDER>
-inline void TestElement<BOUNDARY_ORDER>::nodal_index_shift(unsigned& 
+inline void BernadouElementBasis<BOUNDARY_ORDER>::nodal_index_shift(unsigned& 
  index_shift) const
 {
  // Set the index shift
@@ -612,7 +612,7 @@ OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
 
 // Get the edge permutation
 template <unsigned BOUNDARY_ORDER>
-inline void TestElement<BOUNDARY_ORDER>::permute_shape(Vector<double>& s) const
+inline void BernadouElementBasis<BOUNDARY_ORDER>::permute_shape(Vector<double>& s) const
 {
  // Permute the shape coordinate
  // If the element has been upgraded
@@ -651,7 +651,7 @@ OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
 
 // Get the edge permutation
 template <unsigned BOUNDARY_ORDER>
-inline void TestElement<BOUNDARY_ORDER>::get_jacobian_of_permute(DenseMatrix<double>& jac) const
+inline void BernadouElementBasis<BOUNDARY_ORDER>::get_jacobian_of_permute(DenseMatrix<double>& jac) const
 {
  // Permute the shape coordinate
  // If the element has been upgraded
@@ -693,7 +693,7 @@ OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
 // Inline functions
 // self check function
 template <unsigned BOUNDARY_ORDER>
-void TestElement<BOUNDARY_ORDER>::self_check() const
+void BernadouElementBasis<BOUNDARY_ORDER>::self_check() const
 {
  // Tolerance as a static member HERE
  const double tol(1e-15),angle_tol(1e-12);

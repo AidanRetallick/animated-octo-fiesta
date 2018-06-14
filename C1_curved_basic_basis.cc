@@ -15,7 +15,7 @@ namespace oomph {
 namespace MyC1CurvedElements {
 
 template <>
-void  TestElement<3>::full_basic_polynomials(const Vector<double>& s, Shape&
+void  BernadouElementBasis<3>::full_basic_polynomials(const Vector<double>& s, Shape&
 phi) const
  {
   // temporary HERE
@@ -44,7 +44,7 @@ phi) const
  }
 
 template <>
-void  TestElement<3>::dfull_basic_polynomials(const Vector<double>& s, DShape&
+void  BernadouElementBasis<3>::dfull_basic_polynomials(const Vector<double>& s, DShape&
 dphi) const
  {
   // temporary HERE
@@ -76,7 +76,7 @@ dphi) const
  }
 
 template <>
-void  TestElement<3>::d2full_basic_polynomials(const Vector<double>& s, DShape&
+void  BernadouElementBasis<3>::d2full_basic_polynomials(const Vector<double>& s, DShape&
 d2phi) const
  {
   // temporary HERE
@@ -109,7 +109,7 @@ d2phi) const
  }
 
 template <>
-void  TestElement<5>::full_basic_polynomials(const Vector<double>& s_basic,
+void  BernadouElementBasis<5>::full_basic_polynomials(const Vector<double>& s_basic,
 Shape& phi) const
  {
   // temporary HERE
@@ -419,7 +419,7 @@ t, 2))/125.;
 
  } 
 
-template <> void  TestElement<5>::dfull_basic_polynomials(const Vector<double>&
+template <> void  BernadouElementBasis<5>::dfull_basic_polynomials(const Vector<double>&
 s_basic, DShape& dphi) const 
 { 
   // temporary HERE
@@ -1156,7 +1156,7 @@ t)*pow(s, 2)*(1 - s - 11*t + 9*s*t + 15*pow(t, 2));
 6*s - 54*t + 54*s*t + 54*pow(t, 2)); 
 }
 
-template <> void  TestElement<5>::d2full_basic_polynomials(const Vector<double>&
+template <> void  BernadouElementBasis<5>::d2full_basic_polynomials(const Vector<double>&
 s_basic, DShape&d2phi) const 
 {
   // temporary HERE

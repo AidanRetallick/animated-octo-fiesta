@@ -754,7 +754,7 @@ upgrade_edge_elements_to_curve(const unsigned &b, Mesh* const &bulk_mesh_pt)
    unsigned index_of_interior_node=3;
 
    // The edge that is curved
-   MyC1CurvedElements::TestElement<3>::Edge edge;
+   MyC1CurvedElements::BernadouElementBasis<3>::Edge edge;
 
    // Vertices positions
    Vector<Vector<double> > xn(3,Vector<double>(2,0.0));
@@ -787,14 +787,14 @@ upgrade_edge_elements_to_curve(const unsigned &b, Mesh* const &bulk_mesh_pt)
    // Assign edge case
    switch(index_of_interior_node)
     {
-     case 0: edge= MyC1CurvedElements::TestElement<3>::zero; 
+     case 0: edge= MyC1CurvedElements::BernadouElementBasis<3>::zero; 
       break;
-     case 1: edge= MyC1CurvedElements::TestElement<3>::one; 
+     case 1: edge= MyC1CurvedElements::BernadouElementBasis<3>::one; 
       break;
-     case 2: edge= MyC1CurvedElements::TestElement<3>::two; 
+     case 2: edge= MyC1CurvedElements::BernadouElementBasis<3>::two; 
       break;
      // Should break it here HERE
-     default: edge= MyC1CurvedElements::TestElement<3>::none; 
+     default: edge= MyC1CurvedElements::BernadouElementBasis<3>::none; 
       throw OomphLibError(
        "The edge number has been set to a value greater than two: either we have\
  quadrilateral elements or more likely the index_of_interior_node was never set\

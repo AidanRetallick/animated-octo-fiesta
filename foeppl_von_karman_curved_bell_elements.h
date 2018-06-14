@@ -40,10 +40,10 @@ b, const DisplacementFctPt& u);
   Vector<double>& b2, DenseMatrix<double>& Db1, DenseMatrix<double>& Db2);
 
  /// \short enum to enumerate the possible edges that could be curved
- typedef  typename MyC1CurvedElements::TestElement<BOUNDARY_ORDER>::Edge Edge; 
+ typedef  typename MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::Edge Edge; 
 
  /// \short Get the pointer to the Curved shape class data member
- const MyC1CurvedElements::TestElement<BOUNDARY_ORDER>* curved_shape_pt(){return &Curved_shape;};
+ const MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>* curved_shape_pt(){return &Curved_shape;};
 
  /// \short get the coordinate
  inline void get_coordinate_x(const Vector<double>& s, Vector<double>& x) const;
@@ -51,10 +51,10 @@ b, const DisplacementFctPt& u);
  // Upgrade an element to its curved counterpart
  inline void upgrade_to_curved_element(const Edge& curved_edge, const double& s_ubar,
   const double& s_obar,
-  typename MyC1CurvedElements::TestElement<BOUNDARY_ORDER>::ParametricCurveFctPt parametric_edge,
-  typename MyC1CurvedElements::TestElement<BOUNDARY_ORDER>::ParametricCurveFctPt
+  typename MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::ParametricCurveFctPt parametric_edge,
+  typename MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::ParametricCurveFctPt
 d_parametric_edge,
- typename MyC1CurvedElements::TestElement<BOUNDARY_ORDER>::ParametricCurveFctPt
+ typename MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::ParametricCurveFctPt
 d2_parametric_edge=0);
  
  void shape_u(const Vector<double> &s, Shape &psi) const;
@@ -79,7 +79,7 @@ d2_parametric_edge=0);
   void precompute_association_matrix(DenseMatrix<double>& m)
    {
     // If the element has been upgraded
-    if(Curved_edge ==MyC1CurvedElements::TestElement<BOUNDARY_ORDER>::none)
+    if(Curved_edge ==MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::none)
      {} // Do nothing
     else 
      {Curved_shape.fill_in_full_association_matrix(m);}
@@ -118,7 +118,7 @@ public:
  /// Biharmonic equations
  FoepplVonKarmanC1CurvedBellElement() :
   FoepplVonKarmanEquations<DIM,NNODE_1D>(), 
-  Curved_edge(MyC1CurvedElements::TestElement<BOUNDARY_ORDER>::none),
+  Curved_edge(MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::none),
   Curved_shape(), Rotated_basis_fct_pt(0),  Nnodes_to_rotate(0)
   {
    this->set_nnodal_position_type(6);
@@ -273,7 +273,7 @@ private:
  Edge Curved_edge;
 
  /// Curved Shape function
- MyC1CurvedElements::TestElement<BOUNDARY_ORDER> Curved_shape;
+ MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER> Curved_shape;
 
  /// A Pointer to the function that sets up the rotated basis at point x
  BasisVectorsFctPt Rotated_basis_fct_pt;
@@ -329,7 +329,7 @@ void FoepplVonKarmanC1CurvedBellElement<DIM,NNODE_1D,BOUNDARY_ORDER>::get_coordi
  Vector<double>& s, Vector<double>& x) const
 {
  // If the element has been upgraded
- if(Curved_edge ==MyC1CurvedElements::TestElement<BOUNDARY_ORDER>::none)
+ if(Curved_edge ==MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::none)
   {this-> my_interpolated_x(s,x);}
  else 
   {Curved_shape.coordinate_x(s,x);}
@@ -342,10 +342,10 @@ void FoepplVonKarmanC1CurvedBellElement<DIM,NNODE_1D,BOUNDARY_ORDER>::get_coordi
 template <unsigned DIM, unsigned NNODE_1D, unsigned BOUNDARY_ORDER>
 inline void FoepplVonKarmanC1CurvedBellElement<DIM,NNODE_1D,BOUNDARY_ORDER>::upgrade_to_curved_element
  (const Edge& curved_edge, const double& s_ubar, const double& s_obar,
- typename MyC1CurvedElements::TestElement<BOUNDARY_ORDER>::ParametricCurveFctPt parametric_edge,
- typename MyC1CurvedElements::TestElement<BOUNDARY_ORDER>::ParametricCurveFctPt
+ typename MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::ParametricCurveFctPt parametric_edge,
+ typename MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::ParametricCurveFctPt
 d_parametric_edge ,
- typename MyC1CurvedElements::TestElement<BOUNDARY_ORDER>::ParametricCurveFctPt d2_parametric_edge)
+ typename MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::ParametricCurveFctPt d2_parametric_edge)
 {
  #ifdef PARANOID
  // When upgrading add to count
@@ -388,8 +388,8 @@ order Elements.",OOMPH_CURRENT_FUNCTION,  OOMPH_EXCEPTION_LOCATION);
  Curved_shape.get_d2_chi_fct_pt() = d2_parametric_edge;
  Curved_shape.set_s_ubar() = s_ubar;
  Curved_shape.set_s_obar() = s_obar;
- typename TestElement<BOUNDARY_ORDER>::VertexList  vertices(3,Vector<double>(2,0.0));
- typename TestElement<BOUNDARY_ORDER>::VertexList lvertices(3,Vector<double>(2,0.0));
+ typename BernadouElementBasis<BOUNDARY_ORDER>::VertexList  vertices(3,Vector<double>(2,0.0));
+ typename BernadouElementBasis<BOUNDARY_ORDER>::VertexList lvertices(3,Vector<double>(2,0.0));
 
  // Set up the local vertices
  lvertices[0][0]=1.0;
@@ -402,24 +402,24 @@ order Elements.",OOMPH_CURRENT_FUNCTION,  OOMPH_EXCEPTION_LOCATION);
  switch(curved_edge)
   {
    // Throw an error if an edge is upgraded to none
-   case TestElement<BOUNDARY_ORDER>::none:
+   case BernadouElementBasis<BOUNDARY_ORDER>::none:
     throw OomphLibError( "Cannot upgrade edge 'none'. Curved elements must have\
 one side defined by a parametric function.", OOMPH_CURRENT_FUNCTION,  
      OOMPH_EXCEPTION_LOCATION);
    break;
-   case TestElement<BOUNDARY_ORDER>::zero:
+   case BernadouElementBasis<BOUNDARY_ORDER>::zero:
     // Everything cyclicly permutes
     this->get_x(lvertices[0],vertices[2]);
     this->get_x(lvertices[1],vertices[0]);
     this->get_x(lvertices[2],vertices[1]);
    break;
-   case TestElement<BOUNDARY_ORDER>::one:
+   case BernadouElementBasis<BOUNDARY_ORDER>::one:
     // Everything cyclicly permutes
     this->get_x(lvertices[1],vertices[2]);
     this->get_x(lvertices[2],vertices[0]);
     this->get_x(lvertices[0],vertices[1]);
    break;
-   case TestElement<BOUNDARY_ORDER>::two:
+   case BernadouElementBasis<BOUNDARY_ORDER>::two:
     // Everything is just copied over
     this->get_x(lvertices[2],vertices[2]);
     this->get_x(lvertices[0],vertices[0]);
@@ -459,7 +459,7 @@ double FoepplVonKarmanC1CurvedBellElement<DIM,NNODE_1D,BOUNDARY_ORDER>::get_w_bu
 {
   // Deliberately break this function for the below cases
   // If there is no curved edge then we cannot return anything meaningful
-  if(Curved_edge==MyC1CurvedElements::TestElement<BOUNDARY_ORDER>::none)
+  if(Curved_edge==MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::none)
   {
   throw OomphLibError("There are no time-dependent internal 'bubble' dofs for \
 this element.",OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
@@ -492,7 +492,7 @@ int FoepplVonKarmanC1CurvedBellElement<DIM,NNODE_1D,BOUNDARY_ORDER>::local_w_bub
  {
   // Deliberately break this function for the below cases
   // If there is no curved edge then we cannot return anything meaningful
-  if(Curved_edge==MyC1CurvedElements::TestElement<BOUNDARY_ORDER>::none)
+  if(Curved_edge==MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::none)
   {
   throw OomphLibError(
    "There are no time-dependent internal 'bubble' dofs for this element.",
@@ -666,7 +666,7 @@ shape_and_test_biharmonic(...)", OOMPH_EXCEPTION_LOCATION); // HERE
   }
 
  // If the element has not been upgraded
- if(Curved_edge ==MyC1CurvedElements::TestElement<BOUNDARY_ORDER>::none)
+ if(Curved_edge ==MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::none)
   { 
   // Get J
   this->J_eulerian1(s);
@@ -720,7 +720,7 @@ dshape_and_dtest_biharmonic(...)",
   }
 
  // If the element has been upgraded
- if(Curved_edge ==MyC1CurvedElements::TestElement<BOUNDARY_ORDER>::none)
+ if(Curved_edge ==MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::none)
   { 
   // Get J
   J=this->J_eulerian1(s);
@@ -762,7 +762,7 @@ template <unsigned DIM, unsigned NNODE_1D, unsigned BOUNDARY_ORDER>
   }
 
  // If the element has been upgraded
- if(Curved_edge ==MyC1CurvedElements::TestElement<BOUNDARY_ORDER>::none)
+ if(Curved_edge ==MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::none)
   { 
   // Get J
   J=this->J_eulerian1(s);
@@ -968,7 +968,7 @@ template <unsigned DIM, unsigned NNODE_1D, unsigned BOUNDARY_ORDER>
  // Get the inverse jacobian
  // If the element has been upgraded
  DenseMatrix<double> jacobian(DIM,DIM,0.0),inverse_jacobian(DIM,DIM,0.0);
- if(Curved_edge ==MyC1CurvedElements::TestElement<BOUNDARY_ORDER>::none)
+ if(Curved_edge ==MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::none)
   { 
    // Get the Affine jacobian
    J = this->local_to_eulerian_mapping2(dshape_ds,jacobian,

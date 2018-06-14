@@ -15,7 +15,7 @@ namespace oomph {
 namespace MyC1CurvedElements {
 
 template <>
-void TestElement<3>::monomial_to_basic_matrix(DenseMatrix<double>& A) const
+void BernadouElementBasis<3>::monomial_to_basic_matrix(DenseMatrix<double>& A) const
 {
   // temporary HERE
   #ifdef PARANOID
@@ -520,7 +520,7 @@ void TestElement<3>::monomial_to_basic_matrix(DenseMatrix<double>& A) const
 }
 
  template <>
- void TestElement<5>::monomial_to_basic_matrix(DenseMatrix<double>& b2l) const
+ void BernadouElementBasis<5>::monomial_to_basic_matrix(DenseMatrix<double>& b2l) const
  {
    // temporary HERE
    #ifdef PARANOID
@@ -1827,7 +1827,7 @@ void TestElement<3>::monomial_to_basic_matrix(DenseMatrix<double>& A) const
  }
 
  template <>
- void TestElement<3>::inverse_monomial_to_basic_matrix(DenseDoubleMatrix& ib2l) const
+ void BernadouElementBasis<3>::inverse_monomial_to_basic_matrix(DenseDoubleMatrix& ib2l) const
  {
    // temporary HERE
    #ifdef PARANOID
@@ -1836,7 +1836,7 @@ void TestElement<3>::monomial_to_basic_matrix(DenseMatrix<double>& A) const
  }
 
 template <>
- void TestElement<5>::inverse_monomial_to_basic_matrix(DenseDoubleMatrix& ib2l) const
+ void BernadouElementBasis<5>::inverse_monomial_to_basic_matrix(DenseDoubleMatrix& ib2l) const
  {
    // temporary HERE
    #ifdef PARANOID
