@@ -526,10 +526,11 @@ create_traction_elements(const unsigned &b, Mesh* const &bulk_mesh_pt,
 // too. This is well discussed in by [Zenisek 1981] (Aplikace matematiky , 
 // Vol. 26 (1981), No. 2, 121--141). This results in the necessity for F''(s) 
 // as well.
-template <class ELEMENT>
-void UnstructuredFvKProblem<ELEMENT>::
+template < >
+void UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<2,4,3> >::
 upgrade_edge_elements_to_curve(const unsigned &b, Mesh* const &bulk_mesh_pt) 
 {
+ typedef FoepplVonKarmanC1CurvedBellElement<2,4,3> ELEMENT;
  // How many bulk elements adjacent to boundary b
  unsigned n_element = bulk_mesh_pt-> nboundary_element(b);
  
@@ -645,6 +646,135 @@ the mesh has returned an inverted element (less likely)",
    // Upgrade it
     bulk_el_pt->upgrade_to_curved_element(edge,s_ubar,s_obar,
      *parametric_edge_fct_pt,*d_parametric_edge_fct_pt);
+    
+  }
+}// end upgrade elements
+
+// HERE avoid clumsy redeclaration of upgrade resusing the above more carefully 
+template < >
+void UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<2,4,5> >::
+upgrade_edge_elements_to_curve(const unsigned &b, Mesh* const &bulk_mesh_pt) 
+{
+ // How many bulk elements adjacent to boundary b
+ unsigned n_element = bulk_mesh_pt-> nboundary_element(b);
+ typedef FoepplVonKarmanC1CurvedBellElement<2,4,5> ELEMENT;
+ // These depend on the boundary we are on
+ void (*parametric_edge_fct_pt)(const double& s, Vector<double>&x);
+ void (*d_parametric_edge_fct_pt)(const double& s, Vector<double> &dx);
+ void (*d2_parametric_edge_fct_pt)(const double& s, Vector<double>& dx);
+ double (*get_arc_position)(const Vector<double>& s);
+ 
+// Define the functions for each part of the boundary
+ switch (b)
+  {
+  // Upper boundary
+  case 0:
+   parametric_edge_fct_pt = &TestSoln::parametric_edge_0;
+   d_parametric_edge_fct_pt = &TestSoln::d_parametric_edge_0;
+   d2_parametric_edge_fct_pt = &TestSoln::d2_parametric_edge_0;
+   get_arc_position = &TestSoln::get_s_0;
+  break;
+
+  // Lower boundary
+  case 1:
+   parametric_edge_fct_pt = &TestSoln::parametric_edge_1;
+   d_parametric_edge_fct_pt = &TestSoln::d_parametric_edge_1;
+   d2_parametric_edge_fct_pt = &TestSoln::d2_parametric_edge_1;
+   get_arc_position = &TestSoln::get_s_1;
+  break;
+
+  default:
+   throw OomphLibError(
+    "I have encountered a boundary number that I wasn't expecting. Please fill \
+me in if you want additional curved boundaries..",
+    "UnstructuredFvKProblem::upgrade_edge_elements_to_curve(...)",
+    OOMPH_EXCEPTION_LOCATION);
+  break;
+ }
+ 
+ // Loop over the bulk elements adjacent to boundary b
+ for(unsigned e=0; e<n_element; e++)
+  {
+   // Get pointer to bulk element adjacent to b
+   ELEMENT* bulk_el_pt = dynamic_cast<ELEMENT*>(
+    bulk_mesh_pt->boundary_element_pt(b,e));
+   
+   // Loop over (vertex) nodes
+   unsigned nnode=3; //This should always be = 3 for triangles
+   unsigned index_of_interior_node=3;
+
+   // Enum for the curved edge
+   MyC1CurvedElements::BernadouElementBasis<5>::Edge edge;
+
+   // Vertices positions
+   Vector<Vector<double> > xn(3,Vector<double>(2,0.0));
+ 
+   // Get vertices for debugging
+   Vector<Vector<double> > verts(3,Vector<double>(2,0.0));
+   // Loop nodes
+   for(unsigned n=0;n<nnode;++n)
+    {
+     // If it is on boundary
+     Node* nod_pt = bulk_el_pt->node_pt(n);
+     verts[n][0]=nod_pt->x(0);
+     verts[n][1]=nod_pt->x(1);
+
+     // Check if it is on the outer boundaries
+     if(nod_pt->is_on_boundary(Outer_boundary0) 
+         || nod_pt->is_on_boundary(Outer_boundary1))
+      {
+       xn[n][0]=nod_pt->x(0);
+       xn[n][1]=nod_pt->x(1);
+      }
+     // The edge is denoted by the index of the  opposite (interior) node
+     else {index_of_interior_node = n;}
+    }
+   // Initialise s_ubar s_obar (start and end respectively)
+   double s_ubar, s_obar;
+
+   // s at the next (cyclic) node after interior
+   s_ubar = (*get_arc_position)(xn[(index_of_interior_node+1) % 3]);
+   // s at the previous (cyclic) node before interior
+   s_obar = (*get_arc_position)(xn[(index_of_interior_node+2) % 3]);
+
+   // Assign edge case
+   switch(index_of_interior_node)
+    {
+     case 0: edge= MyC1CurvedElements::BernadouElementBasis<5>::zero; 
+      break;
+     case 1: edge= MyC1CurvedElements::BernadouElementBasis<5>::one; 
+      break;
+     case 2: edge= MyC1CurvedElements::BernadouElementBasis<5>::two; 
+      break;
+     // Should break it here HERE
+     default: edge= MyC1CurvedElements::BernadouElementBasis<5>::none; 
+      throw OomphLibError(
+       "The edge number has been set to a value greater than two: either we have\
+ quadrilateral elements or more likely the index_of_interior_node was never set\
+ and remains at its default value.",
+       "UnstructuredFvKProblem::upgrade_edge_elements_to_curve(...)",
+       OOMPH_EXCEPTION_LOCATION);
+      break;
+     }
+   // Check for inverted elements HERE
+   if (s_ubar>s_obar)
+    {
+     oomph_info <<"Apparent clockwise direction of parametric coordinate."
+                <<"This will probably result in an inverted element."
+                <<"s_start="<<s_ubar<<"; s_end ="<<s_obar<<std::endl;
+     throw OomphLibError(
+       "The Edge coordinate appears to be decreasing from s_start to s_end. \
+Either the parametric boundary is defined to be clockwise (a no-no) or \
+the mesh has returned an inverted element (less likely)",
+       "UnstructuredFvKProblem::upgrade_edge_elements_to_curve(...)",
+       OOMPH_EXCEPTION_LOCATION);
+    }
+
+   // Upgrade it
+    bulk_el_pt->upgrade_to_curved_element(edge,s_ubar,s_obar,
+     *parametric_edge_fct_pt,*d_parametric_edge_fct_pt,
+     *d2_parametric_edge_fct_pt);
+    
   }
 }// end upgrade elements
 
@@ -905,7 +1035,7 @@ int main(int argc, char **argv)
  CommandLineArgs::doc_specified_flags();
 
  // Problem instance
- UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<2,4,3> >
+ UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<2,4,5> >
    problem(element_area);
 
  // Set up some problem paramters
