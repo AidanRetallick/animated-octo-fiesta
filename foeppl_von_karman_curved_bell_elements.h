@@ -376,6 +376,7 @@ order Elements.",OOMPH_CURRENT_FUNCTION,  OOMPH_EXCEPTION_LOCATION);
  // problems
  //delete this->integral_pt();
  TGauss<2,13>* new_integral_pt = new TGauss<2,13>;
+ this->set_integration_scheme(new_integral_pt); 
 
  // Set the number of internal dofs to 3
  this->Number_of_internal_dof_types = 1;

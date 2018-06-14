@@ -793,7 +793,7 @@ void FoepplVonKarmanEquations<DIM,NNODE_1D>::compute_error_in_deflection(std::os
  error=0.0;
  norm=0.0;
  //Find out how many nodes there are
- const unsigned n_node = this->nnode();
+ // const unsigned n_node = this->nnode();
  const unsigned n_node_w = 3; // HERE
  //Find out how many bubble nodes there are
  const unsigned n_b_node = this->Number_of_internal_dofs;
@@ -901,7 +901,7 @@ void FoepplVonKarmanEquations<DIM,NNODE_1D>::compute_error(std::ostream &outfile
  norm=0.0;
 
  //Find out how many nodes there are
- const unsigned n_node = this->nnode();
+ // const unsigned n_node = this->nnode();
  const unsigned n_node_w = 3; // HERE
  //Find out how many bubble nodes there are
  const unsigned n_b_node = this->Number_of_internal_dofs;

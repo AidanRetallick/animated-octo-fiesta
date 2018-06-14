@@ -77,8 +77,8 @@ const unsigned& boundary_number, const PressureFctPt& u)=0;
  /// Constructor (must initialise the Pressure_fct_pt to null)
  FoepplVonKarmanEquations() : Pressure_fct_pt(0),
    In_plane_forcing_fct_pt(0),Number_of_internal_dofs(0),
-   Number_of_internal_dof_types(0), Association_matrix_pt(0),
-Error_metric_fct_pt(0), Multiple_error_metric_fct_pt(0) {}
+   Number_of_internal_dof_types(0), Error_metric_fct_pt(0),
+    Multiple_error_metric_fct_pt(0), Association_matrix_pt(0) {}
 
  /// Broken copy constructor
  FoepplVonKarmanEquations(const FoepplVonKarmanEquations& dummy)
