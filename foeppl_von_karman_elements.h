@@ -32,10 +32,10 @@ public:
  typedef void (*PressureFctPt)(const Vector<double>& x, double& f);
 
 
- /// \short Function pointer to gradient of pressure function  fct(x,g(x)) --
+ /// \short Function pointer to in plane forcing function  fct(x,g(x)) --
  /// x is a Vector!
- typedef void (*PressureFctGradientPt)(const Vector<double>& x,
-                                            Vector<double>& gradient);
+ typedef void (*InPlaneForcingFctPt)(const Vector<double>& x,
+                                            Vector<double>& forcing);
 
  /// \short Function pointer to the Error Metric we are using
  ///  e.g could be that we are just interested in error on w etc.
@@ -76,7 +76,7 @@ const unsigned& boundary_number, const PressureFctPt& u)=0;
 
  /// Constructor (must initialise the Pressure_fct_pt to null)
  FoepplVonKarmanEquations() : Pressure_fct_pt(0),
-   Pressure_fct_gradient_pt(0),Number_of_internal_dofs(0),
+   In_plane_forcing_fct_pt(0),Number_of_internal_dofs(0),
    Number_of_internal_dof_types(0), Association_matrix_pt(0),
 Error_metric_fct_pt(0), Multiple_error_metric_fct_pt(0) {}
 
@@ -215,13 +215,13 @@ Error_metric_fct_pt(0), Multiple_error_metric_fct_pt(0) {}
  MultipleErrorMetricFctPt multiple_error_metric_fct_pt() const 
   {return Multiple_error_metric_fct_pt;}
 
- /// Access function: Pointer to gradient of pressure function
- PressureFctGradientPt& pressure_fct_gradient_pt()
-  {return Pressure_fct_gradient_pt;}
+ /// Access function: Pointer to in plane forcing function
+ InPlaneForcingFctPt& in_plane_forcing_fct_pt()
+  {return In_plane_forcing_fct_pt;}
 
- /// Access function: Pointer to gradient pressure function. Const version
- PressureFctGradientPt pressure_fct_gradient_pt() const
-  {return Pressure_fct_gradient_pt;}
+ /// Access function: Pointer to in plane forcing function. Const version
+ InPlaneForcingFctPt in_plane_forcing_fct_pt() const
+  {return In_plane_forcing_fct_pt;}
 
  ///Access function to the Poisson ratio.
  const double*& nu_pt() {return Nu_pt;}
@@ -346,17 +346,6 @@ output_stress_flag=false) const
 
    //Initialise value of u
    Vector<double> interpolated_u(15,0.0);
-
-//   // Vertices
-//   Vector<Vector<double> > v(n_node,Vector<double>(2));
-//   for (unsigned inode=0;inode<n_node;++inode)
-//    {
-//     // Get the position vector
-//     Node* nod_pt=this->node_pt(inode);
-//     v[inode][0]=nod_pt->x(0);
-//     v[inode][1]=nod_pt->x(1);
-//    }
-
    //Find values of c1-shape function
    d2shape_and_d2test_eulerian_biharmonic(s,psi,psi_b,dpsi_dxi,dpsi_b_dxi,
     d2psi_dxi2,d2psi_b_dxi2,test,test_b,dtest_dxi,dtest_b_dxi,d2test_dxi2,
@@ -495,16 +484,16 @@ protected:
  /// Pointer to pressure function:
  PressureFctPt Pressure_fct_pt;
 
- /// Pointer to gradient of pressure function (i.e. the shear force applied to
+ /// Pointer to in plane forcing function (i.e. the shear force applied to
  /// the face)
- PressureFctGradientPt Pressure_fct_gradient_pt;
+ InPlaneForcingFctPt In_plane_forcing_fct_pt;
 
  /// Pointer to Poisson ratio, which this element cannot modify
  const double* Nu_pt;
 
-
  /// Pointer to global eta
  double *Eta_pt;
+
  /// \short unsigned that holds the internal 'bubble' dofs the element has -
  // zero for Bell Elements and 3 for C1 curved elements
  unsigned Number_of_internal_dofs;

@@ -440,7 +440,7 @@ ELEMENT* el_pt = dynamic_cast<ELEMENT*>(Bulk_mesh_pt->element_pt(e));
 
 //Set the pressure function pointers and the physical constants
 el_pt->pressure_fct_pt() = &TestSoln::get_pressure;
-el_pt->pressure_fct_gradient_pt() = &TestSoln::get_in_plane_force;   
+el_pt->in_plane_forcing_fct_pt() = &TestSoln::get_in_plane_force;   
 el_pt->error_metric_fct_pt() = &TestSoln::error_metric;
 el_pt->nu_pt() = &TestSoln::nu;
 el_pt->eta_pt() = &TestSoln::eta;

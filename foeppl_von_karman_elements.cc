@@ -151,7 +151,7 @@ fill_in_generic_residual_contribution_biharmonic(Vector<double> &residuals,
    double  pressure;
    get_pressure_biharmonic(ipt,interpolated_x,pressure);
    Vector<double> pressure_gradient(2,0.0);
-   (*pressure_fct_gradient_pt())(interpolated_x,pressure_gradient);
+   (*in_plane_forcing_fct_pt())(interpolated_x,pressure_gradient);
 
    // Loop over the nodal test functions
    for(unsigned l=0;l<n_node_w;l++)
