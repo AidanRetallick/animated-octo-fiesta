@@ -60,6 +60,9 @@ namespace MyC1CurvedElements {
 // The solution is then represented on the curved element as a seventh order
 // bivariate polynomial that is constrained to have the aforementioned traces.
 
+/// \short enum to enumerate the possible edges that could be curved
+enum Edge {none=-1,zero=0,one=1,two=2};
+
 template <unsigned BOUNDARY_ORDER>
 class BernadouElementBasis
 {
@@ -67,8 +70,6 @@ public:
   /// \short typedef for the edge curve
   typedef void (*ParametricCurveFctPt)(const double& s, Vector<double>& param_fct);
 
-  /// \short enum to enumerate the possible edges that could be curved
-  enum Edge {none=-1,zero=0,one=1,two=2};
 
   /// \short Shorthand for a vector of vectors containining the vertices
   typedef Vector<Vector<double> > VertexList;
