@@ -40,6 +40,37 @@
 using namespace std;
 using namespace oomph;
 using MathematicalConstants::Pi;
+
+/*                      OUTLINE OF PROBLEM CONSTRUCTION                       */
+// The basic constuction is much the same as the usual order of things in a 
+// problem. Underneath is the order of actions (with stars next to non actions
+// that are unique to these types of problems).
+// 1.  Setup mesh parameters
+// 2.  Build the mesh
+// 3.* Upgrade Elements 
+//     We upgrade edge elements on relevant boundaries to be curved C1 elements.
+//     This involves working out which edge is to be upgraded and then passing
+//     information about the global curve and start and end points of the 
+//     element edge on that curve to the element.
+// 4.* Rotate edge degrees of freedom.
+//     We rotate the Hermite dofs that lie on the edge into the normal - 
+//     tangential basis so that we can set physical boundary conditions like 
+//     clamping or resting conditions.
+// 5.  Complete problem Setup and set Boundary conditions.
+
+/*                            REQUIRED DEFINITIONS                            */
+// Per Curve Section we will need:
+// 1.  A parametric function defining the curve section.
+// 2.  The tangential derivative of the parametric function defining 
+//     the curve section.
+// 3.* (For 5 order boundary representation) The second tangential derivative
+//     of the parametric function defining the curve section.
+// 4.  A unit normal and tangent to each curve section and corresponding 
+//     derivatives, to allow the rotation of boundary coordinates.
+// It also convenient to define:
+// 1.  An inverse function (x,y) -> s (the arc coordinate) to help in setting
+//     up the nodal positions in terms of this parametric coordinate.
+
 namespace TestSoln
 {
 //Shape of the domain
@@ -50,11 +81,11 @@ double eta = 1;
 double p_mag = 1; 
 double nu = 0.5;
 
-/*---------------------------------------------------------------------------*/
-// The Parametric Boudnary Definition 
-/*---------------------------------------------------------------------------*/
+/*                     PARAMETRIC BOUNDARY DEFINITIONS                        */
+// Here we define functions for the Parametric Boundary Definition 
+
 // Parametric function for boundary part 0 and derivatives
-// This is a circlular arc!
+// This is a circlular arc
 void parametric_edge_0(const double& s, Vector<double>& x)
  { x[0] =-std::sin(s);  x[1] = std::cos(s);}
 // Derivative of parametric function
@@ -89,22 +120,6 @@ double get_s_1(const Vector<double>& x)
 return atan2(x[0],-x[1]);
 }
 
-// Assigns the value of pressure depending on the position (x,y)
-void get_pressure(const Vector<double>& x, double& pressure)
-{
- pressure = p_mag; //constant pressure - can make a function of x
- // NB if you are going to use 1/r make sure to take out internal boundaries
- // Or there will be a div by zero error here
-}
-
-// Assigns the value of in plane forcing depending on the position (x,y)
-void get_in_plane_force(const Vector<double>& X, Vector<double>& grad)
-{
- // Return the (constant) pressure
- grad[0] = 0;
- grad[1] = 0;
-}
-
 // The normal and tangential directions. We need the derivatives so we can form
 // The Hessian and the Jacobian of the rotation
 void get_normal_and_tangent(const Vector<double>& x, Vector<double>& n, 
@@ -128,6 +143,23 @@ void get_normal_and_tangent(const Vector<double>& x, Vector<double>& n,
  Dt(1,0) = Dn(0,0); 
  Dt(0,1) =-Dn(1,1);
  Dt(1,1) = Dn(0,1);
+}
+
+/*                           PROBLEM DEFINITIONS                              */
+// Assigns the value of pressure depending on the position (x,y)
+void get_pressure(const Vector<double>& x, double& pressure)
+{
+ pressure = p_mag; //constant pressure - can make a function of x
+ // NB if you are going to use 1/r make sure to take out internal boundaries
+ // Or there will be a div by zero error here
+}
+
+// Assigns the value of in plane forcing depending on the position (x,y)
+void get_in_plane_force(const Vector<double>& X, Vector<double>& grad)
+{
+ // Return the (constant) pressure
+ grad[0] = 0;
+ grad[1] = 0;
 }
 
 // This metric will flag up any non--axisymmetric parts
