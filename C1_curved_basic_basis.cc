@@ -7,7 +7,7 @@
 // shape functions.
 
 // We could possibly change this out for a static DenseMatrix which has the LU
-// decomposition stored - might give snmaller round off and be of comparably
+// decomposition stored - might give smaller round off and be of comparably
 // speed HERE
 
 // We could definitely store this as a static 
