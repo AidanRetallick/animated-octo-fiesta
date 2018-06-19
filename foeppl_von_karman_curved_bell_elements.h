@@ -65,8 +65,6 @@ d2_parametric_edge=0);
  void dshape_u_local(const Vector<double> &s,
                     Shape &psi, DShape &dpsids) const;
 
-//  void local_coordinate_of_node(const unsigned& j, Vector<double>& s) const;
-
  // Quick, lets rob some of WPs code! 
  void Lshape(const Vector<double> &s, Shape &psi) const;
   
@@ -93,39 +91,6 @@ d2_parametric_edge=0);
  // Wrappers
  double n_basis_functions(){return Curved_shape.n_basis_functions();};
  double n_basic_basis_functions(){return Curved_shape.n_basic_basis_functions();};
-
-// // Snap the nodes onto the boundary
-// void snap_nodes_onto_boundary()
-//  {
-//  // If the element has been upgraded
-//  if(Curved_edge ==MyC1CurvedElements::none)
-//   {/*No boundary to snap on to*/ } // Do nothing for now.
-//  else 
-//   {
-//   // Loop over boundary nodes
-//   const unsigned n_node = this->nnode();
-//   // Bell elements only have deflection dofs at vertices
-//   for(unsigned n=0; n<n_node; ++n)
-//    {
-//    // Get node
-//    Node* nod_pt=this->node_pt(n);
-//    // Check if it is on the boundary
-//    bool is_boundary_node=nod_pt->is_on_boundary();
-//    if(is_boundary_node)
-//     {
-//     // Extract nodal coordinates from node:
-//     Vector<double> new_x(2),s_node(2);
-//     this->local_coordinate_of_node(n,s_node);
-//      
-//     get_coordinate_x(s_node,new_x);
-//     // Snap onto curved boundary
-//     for(unsigned i=0;i<2;++i)
-//      {nod_pt->x(i) = new_x[i];}
-//     }
-//    }
-//   }
-//  }
-
 protected:
  /// Get rotation matrices that change the degrees of freedom to the basis set
  /// by Rotated_basis_fct_pt
