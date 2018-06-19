@@ -14,6 +14,8 @@ void shape_u(const Vector<double> &s, Shape &psi);
 template<unsigned DIM, unsigned NNODE>
 void dshape_u_local(const Vector<double> &s, Shape &psi, DShape &dpsids);
 
+template<unsigned DIM, unsigned NNODE>
+void local_coordinate_of_node(const unsigned& j, Vector<double>& s);
 //=======================================================================
 /// Shape function for specific TElement<2,2>
 //=======================================================================
@@ -41,6 +43,41 @@ void dshape_u_local(const Vector<double> &s, Shape &psi, DShape &dpsids);
     dpsids(2,0) = -1.0;
     dpsids(2,1) = -1.0;
    }
+
+  template<>
+  void local_coordinate_of_node<2,2>(const unsigned& j,
+                                Vector<double>& s) 
+   {
+    s.resize(2);
+
+    switch (j)
+     {
+     case 0:
+      s[0]=1.0;
+      s[1]=0.0;
+      break;
+      
+     case 1:
+      s[0]=0.0;
+      s[1]=1.0;
+      break;
+      
+     case 2:
+      s[0]=0.0;
+      s[1]=0.0;
+      break;
+      
+     default:
+      std::ostringstream error_message;
+      error_message << "Element only has three nodes; called with node number " 
+                    << j << std::endl;
+      
+      throw OomphLibError(error_message.str(),
+                          OOMPH_CURRENT_FUNCTION,
+                          OOMPH_EXCEPTION_LOCATION);
+     }
+   }
+  
 
 //=======================================================================
 /// Shape function for specific TElement<2,3>
@@ -86,6 +123,58 @@ void dshape_u_local(const Vector<double> &s, Shape &psi, DShape &dpsids);
  dpsids(5,0) = 4.0*(1.0-2.0*s[0]-s[1]);
  dpsids(5,1) = -4.0*s[0];
 }
+
+//=======================================================================
+/// Return local coordinates of node j
+//=======================================================================
+  template<>
+  void local_coordinate_of_node<2,3>(const unsigned& j,
+                                Vector<double>& s) 
+   {
+    s.resize(2);
+
+    switch (j)
+     {
+     case 0:
+      s[0]=1.0;
+      s[1]=0.0;
+      break;
+      
+     case 1:
+      s[0]=0.0;
+      s[1]=1.0;
+      break;
+      
+     case 2:
+      s[0]=0.0;
+      s[1]=0.0;
+      break;
+      
+     case 3:
+      s[0]=0.5;
+      s[1]=0.5;
+      break;
+      
+     case 4:
+      s[0]=0.0;
+      s[1]=0.5;
+      break;
+      
+     case 5:
+      s[0]=0.5;
+      s[1]=0.0;
+      break;
+      
+     default:
+      std::ostringstream error_message;
+      error_message << "Element only has six nodes; called with node number " 
+                    << j << std::endl;
+      
+      throw OomphLibError(error_message.str(),
+                          OOMPH_CURRENT_FUNCTION,
+                          OOMPH_EXCEPTION_LOCATION);
+     }
+   }
 
 //=======================================================================
 /// Shape function for specific TElement<2,4>
@@ -142,6 +231,74 @@ void dshape_u_local<2,4>(const Vector<double> &s,
  dpsids(9,1) = 27.0*s[0]-54.0*s[0]*s[1]-27.0*s[0]*s[0];
  
 }
+  template<>
+  void local_coordinate_of_node<2,4>(const unsigned& j,
+                                Vector<double>& s)
+   {
+    s.resize(2);
+
+    switch (j)
+    {
+    case 0:
+     s[0]=1.0;
+     s[1]=0.0;
+     break;
+
+    case 1:
+     s[0]=0.0;
+     s[1]=1.0;
+     break;
+
+    case 2:
+     s[0]=0.0;
+     s[1]=0.0;
+     break;
+
+    case 3:
+     s[0]=2.0/3.0;
+     s[1]=1.0/3.0;
+     break;
+
+    case 4:
+     s[0]=1.0/3.0;
+     s[1]=2.0/3.0;
+     break;
+
+    case 5:
+     s[0]=0.0;
+     s[1]=2.0/3.0;
+     break;
+
+    case 6:
+     s[0]=0.0;
+     s[1]=1.0/3.0;
+     break;
+
+    case 8:
+     s[0]=2.0/3.0;
+     s[1]=0.0;
+     break;
+
+    case 7:
+     s[0]=1.0/3.0;
+     s[1]=0.0;
+     break;
+
+    case 9:
+     s[0]=1.0/3.0;
+     s[1]=1.0/3.0;
+     break;
+
+    default:
+     std::ostringstream error_message;
+     error_message << "Element only has ten nodes; called with node number " 
+                   << j << std::endl;
+     
+     throw OomphLibError(error_message.str(),
+                         OOMPH_CURRENT_FUNCTION,
+                         OOMPH_EXCEPTION_LOCATION);
+    }
+   }
 }
 }
 //======================================================================
@@ -191,7 +348,15 @@ void dshape_u_local<2,4>(const Vector<double> &s,
     // Call the template function 
     MyC1CurvedElements::TLagrangeShape::
      dshape_u_local<DIM,NNODE>(s,psi,dpsids);
-   }
+  }
+
+////=======================================================================
+///// Return local coordinates of node j
+////=======================================================================
+// template<unsigned DIM, unsigned NNODE, unsigned BOUNDARY_ORDER>
+// void FoepplVonKarmanC1CurvedBellElement<DIM,NNODE,BOUNDARY_ORDER>::
+// local_coordinate_of_node(const unsigned& j, Vector<double>& s) const;
+
 //====================================================================
 // Force build of templates
 //====================================================================
