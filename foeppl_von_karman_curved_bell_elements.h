@@ -1100,9 +1100,17 @@ DisplacementFctPt& u)
     if(is_boundary_node)
      {
       // Extract nodal coordinates from node:
-      Vector<double> x(2);
+      // HERE shouldn't we get s of node and then use interpolated position
+      // here to be consistent?
+      // Since the element isn't necessarily isoparametric the nodes 'position'
+      // is not necessarily correct?
+      Vector<double> x(2),s(2);
+      this->local_coordinate_of_node(n,s);
+      get_coordinate_x(s, x); 
+      /*
       x[0]=nod_pt->x(0);
       x[1]=nod_pt->x(1);
+      */
       // Get value
       double value;
       u(x,value);
