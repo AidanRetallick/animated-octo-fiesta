@@ -42,20 +42,32 @@ public:
  typedef void (*ErrorMetricFctPt)(const Vector<double>& x, const 
   Vector<double>& u, const Vector<double>& u_exact, double& error, double& norm);
 
- /// \shot Function pointer to the Error Metric we are using if we want multiple
+ /// \short Function pointer to the Error Metric we are using if we want multiple
  ///  errors.  e.g could be we want errors seperately on each displacment
  typedef void (*MultipleErrorMetricFctPt)(const Vector<double>& x, const 
   Vector<double>& u, const Vector<double>& u_exact, Vector<double>& error, 
   Vector<double>& norm);
 
+ /// \short (pure virtual) interface to fixing the out of plane displacement
+ // NB do we need this?
  virtual void fix_out_of_plane_displacement_dof(const unsigned& dof_number, 
 const unsigned& boundary_number, const PressureFctPt& w)=0;
 
+ /// \short (pure virtual) interface to fixing the in plane displacement
+ // NB do we need this?
  virtual void fix_in_plane_displacement_dof(const unsigned& dof_number,
 const unsigned& boundary_number, const PressureFctPt& u)=0;
 
+ /// \short (pure virtual) function that precomputes association matrix between
+ /// the basis functions of the basic element and the physical element.
  virtual void precompute_association_matrix(DenseMatrix<double>& m)=0;
+ 
+ /// short (pure virtual) function that returns the number of basis functions in 
+ /// the physical element
  virtual double n_basis_functions()=0;
+
+ /// short (pure virtual) function that returns the number of basis functions in
+ /// the basic element
  virtual double n_basic_basis_functions()=0;
 
  
@@ -312,6 +324,7 @@ const unsigned& boundary_number, const PressureFctPt& u)=0;
 
  /// \short Return FE representation of unknown values u(s)
  /// at local coordinate s
+ // HERE leave as pure virtual and compute inside derived class?
  inline Vector<double> interpolated_u_biharmonic(const Vector<double> &s, bool
 output_stress_flag=false) const
   {
