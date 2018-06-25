@@ -919,11 +919,11 @@ int main(int argc, char **argv)
  CommandLineArgs::specify_command_line_flag("--p", &TestSoln::p_mag);
 
  // P_step
- double p_step=100;
+ double p_step=3;
  CommandLineArgs::specify_command_line_flag("--dp", &p_step);
 
  // Applied Pressure
- double p_max = 400;
+ double p_max = 4;
  CommandLineArgs::specify_command_line_flag("--p_max", &p_max);
 
  // Element Area (no larger element than 0.09)
