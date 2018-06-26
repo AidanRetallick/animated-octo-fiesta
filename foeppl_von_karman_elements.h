@@ -82,7 +82,7 @@ const unsigned& boundary_number, const PressureFctPt& u)=0;
  const double &eta() const {return *Eta_pt;}
 
  /// Pointer to eta
- double* &eta_pt() {return Eta_pt;}
+ const double* &eta_pt() {return Eta_pt;}
 
  virtual void pin_all_deflection_dofs() const=0;
 
@@ -90,7 +90,11 @@ const unsigned& boundary_number, const PressureFctPt& u)=0;
  FoepplVonKarmanEquations() : Pressure_fct_pt(0),
    In_plane_forcing_fct_pt(0),Number_of_internal_dofs(0),
    Number_of_internal_dof_types(0), Error_metric_fct_pt(0),
-    Multiple_error_metric_fct_pt(0), Association_matrix_pt(0) {}
+    Multiple_error_metric_fct_pt(0), Association_matrix_pt(0) 
+  {
+   Eta_pt = &Default_Eta_Value;
+   Nu_pt = &Default_Nu_Value;
+  }
 
  /// Broken copy constructor
  FoepplVonKarmanEquations(const FoepplVonKarmanEquations& dummy)
@@ -111,7 +115,7 @@ const unsigned& boundary_number, const PressureFctPt& u)=0;
  /// In derived multi-physics elements, this function should be overloaded
  /// to reflect the chosen storage scheme. Note that these equations require
  /// that the unknown is always stored at the same index at each node.
- virtual inline unsigned u_index_biharmonic() const {return this->required_nvalue(0);}
+ virtual inline unsigned u_index_foeppl_von_karman() const {return this->required_nvalue(0);}
 
  /// Output with default number of plot points
  void output(std::ostream &outfile)
@@ -252,7 +256,7 @@ const unsigned& boundary_number, const PressureFctPt& u)=0;
  /// virtual to allow overloading in multi-physics problems where
  /// the strength of the pressure function might be determined by
  /// another system of equations.
- inline virtual void get_pressure_biharmonic(const unsigned& ipt,
+ inline virtual void get_pressure_foeppl_von_karman(const unsigned& ipt,
                                         const Vector<double>& x,
                                         double& pressure) const
   {
@@ -268,6 +272,28 @@ const unsigned& boundary_number, const PressureFctPt& u)=0;
     }
   }
 
+ /// Get pressure term at (Eulerian) position x. This function is
+ /// virtual to allow overloading in multi-physics problems where
+ /// the strength of the pressure function might be determined by
+ /// another system of equations.
+ inline virtual void get_in_plane_forcing_foeppl_von_karman(const unsigned& ipt,
+                                        const Vector<double>& x,
+                                        Vector<double>& pressure) const
+  {
+   pressure.resize(2);
+   //If no pressure function has been set, return zero
+   if(In_plane_forcing_fct_pt==0)
+    {
+     pressure[0] = 0.0;
+     pressure[1] = 0.0; 
+    }
+   else
+    {
+     // Get pressure strength
+     (*In_plane_forcing_fct_pt)(x,pressure);
+    }
+  }
+
  /// Add the element's contribution to its residual vector (wrapper)
  void fill_in_contribution_to_residuals(Vector<double> &residuals)
   {
@@ -279,7 +305,7 @@ const unsigned& boundary_number, const PressureFctPt& u)=0;
 
    //Call the generic residuals function with flag set to 0
    //using a dummy matrix argument
-   fill_in_generic_residual_contribution_biharmonic(
+   fill_in_generic_residual_contribution_foeppl_von_karman(
     residuals,GeneralisedElement::Dummy_matrix,0);
 
    Association_matrix_pt=0;
@@ -297,7 +323,7 @@ const unsigned& boundary_number, const PressureFctPt& u)=0;
    this->Association_matrix_pt=&conversion_matrix;
 
    //Call the generic routine with the flag set to 1
-   fill_in_generic_residual_contribution_biharmonic(residuals,jacobian,1);
+   fill_in_generic_residual_contribution_foeppl_von_karman(residuals,jacobian,1);
 
    Association_matrix_pt=0;
   }
@@ -325,7 +351,7 @@ const unsigned& boundary_number, const PressureFctPt& u)=0;
  /// \short Return FE representation of unknown values u(s)
  /// at local coordinate s
  // HERE leave as pure virtual and compute inside derived class?
- inline Vector<double> interpolated_u_biharmonic(const Vector<double> &s, bool
+ inline Vector<double> interpolated_u_foeppl_von_karman(const Vector<double> &s, bool
 output_stress_flag=false) const
   {
    //Find number of position dofs
@@ -339,7 +365,7 @@ output_stress_flag=false) const
    //Find out how many internal points there are
    const unsigned n_b_node = this->Number_of_internal_dofs;
    //Get the index at which the unknown is stored
-   // const unsigned u_nodal_index = u_index_biharmonic();
+   // const unsigned u_nodal_index = u_index_foeppl_von_karman();
 
    //Local c1-shape funtion
    Shape psi(n_w_node,n_position_type),test(n_w_node,n_position_type),
@@ -360,12 +386,12 @@ output_stress_flag=false) const
    //Initialise value of u
    Vector<double> interpolated_u(15,0.0);
    //Find values of c1-shape function
-   d2shape_and_d2test_eulerian_biharmonic(s,psi,psi_b,dpsi_dxi,dpsi_b_dxi,
+   d2shape_and_d2test_eulerian_foeppl_von_karman(s,psi,psi_b,dpsi_dxi,dpsi_b_dxi,
     d2psi_dxi2,d2psi_b_dxi2,test,test_b,dtest_dxi,dtest_b_dxi,d2test_dxi2,
     d2test_b_dxi2);
 
    // Get shape and test
-   dshape_u_and_dtest_u_eulerian_biharmonic(s,psi_u,dpsi_u,test_u,dtest_u);
+   dshape_u_and_dtest_u_eulerian_foeppl_von_karman(s,psi_u,dpsi_u,test_u,dtest_u);
    //Interpolated unknown
    for(unsigned l=0;l<n_w_node;l++)
    {
@@ -450,7 +476,7 @@ protected:
  virtual void shape_u(const Vector<double> &s,  Shape &psi) const=0;
  /// \short Shape/test functions and derivs w.r.t. to global coords at
  /// local coord. s; return  Jacobian of mapping
- virtual double d2shape_and_d2test_eulerian_biharmonic(const Vector<double> &s,
+ virtual double d2shape_and_d2test_eulerian_foeppl_von_karman(const Vector<double> &s,
   Shape &psi, Shape& psi_b, DShape &dpsi_dx, DShape &dpsi_b_dx,
   DShape &d2psi_dx2,DShape& d2psi_b_dx2,
   Shape &test, Shape& test_b, DShape &dtest_dx, DShape &dtest_b_dx,
@@ -458,21 +484,22 @@ protected:
 
  /// \short Shape/test functions and derivs w.r.t. to global coords at
  /// local coord. s; return  Jacobian of mapping
- virtual double dshape_and_dtest_eulerian_biharmonic(const Vector<double> &s,
+ virtual double dshape_and_dtest_eulerian_foeppl_von_karman(const Vector<double> &s,
   Shape &psi, Shape& psi_b, DShape &dpsi_dx, DShape &dpsi_b_dx,
   Shape &test, Shape& test_b, DShape &dtest_dx, DShape &dtest_b_dx) const=0;
 
  /// \short Shape/test functions at local coordinate s
- virtual void shape_and_test_biharmonic(const Vector<double> &s,
+ virtual void shape_and_test_foeppl_von_karman(const Vector<double> &s,
   Shape &psi, Shape& psi_b, Shape &test, Shape& test_b) const=0;
  
  /// \short in--plane Shape/test functions at local coordinate s
- virtual double dshape_u_and_dtest_u_eulerian_biharmonic(const Vector<double> &s,
+ virtual double dshape_u_and_dtest_u_eulerian_foeppl_von_karman(const Vector<double> &s,
   Shape &psi,DShape &dpsidx, Shape &test,DShape &dtestdx) const=0;
 
+/// HERE BREAK THESE
 // /// \short Shape/test functions and derivs w.r.t. to global coords at
 // /// local coord. s; return  Jacobian of mapping
-// virtual double d2shape_and_d2test_eulerian_at_knot_biharmonic(const
+// virtual double d2shape_and_d2test_eulerian_at_knot_foeppl_von_karman(const
 //  unsigned ipt, Shape &psi, Shape& psi_b, DShape &dpsi_dx, DShape &dpsi_b_dx,
 //  DShape &d2psi_dx2,DShape& d2psi_b_dx2,
 //  Shape &test, Shape& test_b, DShape &dtest_dx, DShape &dtest_b_dx,
@@ -480,17 +507,17 @@ protected:
 //
 // /// \short Shape/test functions and derivs w.r.t. to global coords at
 // /// local coord. s; return  Jacobian of mapping
-// virtual double dshape_and_dtest_eulerian__at_knot_biharmonic(const
+// virtual double dshape_and_dtest_eulerian__at_knot_foeppl_von_karman(const
 //  unsigned& ipt, Shape &psi, Shape& psi_b, DShape &dpsi_dx, DShape &dpsi_b_dx,
 //  Shape &test, Shape& test_b, DShape &dtest_dx, DShape &dtest_b_dx) const=0;
 //
 // /// \short Shape/test functions at integral point ipt
-// virtual void shape_and_test_biharmonic_at_knot(const unsigned& ipt,
+// virtual void shape_and_test_foeppl_von_karman_at_knot(const unsigned& ipt,
 //  Shape &psi, Shape& psi_b, Shape &test, Shape& test_b) const=0;
 
  /// \short Compute element residual Vector only (if flag=and/or element
  /// Jacobian matrix
- virtual void fill_in_generic_residual_contribution_biharmonic(
+ virtual void fill_in_generic_residual_contribution_foeppl_von_karman(
   Vector<double> &residuals, DenseMatrix<double> &jacobian,
   const unsigned& flag);
 
@@ -505,7 +532,7 @@ protected:
  const double* Nu_pt;
 
  /// Pointer to global eta
- double *Eta_pt;
+ const double *Eta_pt;
 
  /// \short unsigned that holds the internal 'bubble' dofs the element has -
  // zero for Bell Elements and 3 for C1 curved elements
@@ -516,8 +543,11 @@ protected:
  // for C1 curved elements
  unsigned Number_of_internal_dof_types;
 
- /// Default value for physical constants
- static double Default_Physical_Constant_Value;
+ /// Default value for physical constant: Poisson ratio. 
+ static const double Default_Nu_Value;
+
+ /// Default eta value so that we use 'natural' nondim and have no h dependence. 
+ static const double Default_Eta_Value;
 
  /// Pointer to error metric
  ErrorMetricFctPt Error_metric_fct_pt;

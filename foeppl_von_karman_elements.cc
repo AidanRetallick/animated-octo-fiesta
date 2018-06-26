@@ -3,11 +3,20 @@
 
 namespace oomph
 {
+ /// \short Default to incompressible sheet Poisson ratio
+ template <unsigned DIM, unsigned NNODE_1D>
+ const double FoepplVonKarmanEquations<DIM,NNODE_1D>::Default_Nu_Value=0.5;
+ 
+ /// \short Default to 'natural' FvK nondimensionalisation which is h 
+ /// independent (NB NOT the same as in JFM paper)
+ template <unsigned DIM, unsigned NNODE_1D>
+ const double FoepplVonKarmanEquations<DIM,NNODE_1D>::Default_Eta_Value=1;
+
 
 //======================================================================
 template <unsigned DIM, unsigned NNODE_1D>
 void  FoepplVonKarmanEquations<DIM,NNODE_1D>::
-fill_in_generic_residual_contribution_biharmonic(Vector<double> &residuals,
+fill_in_generic_residual_contribution_foeppl_von_karman(Vector<double> &residuals,
                                               DenseMatrix<double> &jacobian,
                                               const unsigned& flag)
 {
@@ -67,11 +76,11 @@ fill_in_generic_residual_contribution_biharmonic(Vector<double> &residuals,
    // CALL MODIFIED SHAPE (THAT TAKES ASSOCIATION MATRIX AS AN ARGUMENT) HERE
    // MAKE SURE THAT THE MULTIPLICATION IS EFFICIENT USING BLOCK STRUCTURE
    //Call the derivatives of the shape and test functions for the unknown
-   double J = d2shape_and_d2test_eulerian_biharmonic(s,
+   double J = d2shape_and_d2test_eulerian_foeppl_von_karman(s,
     psi, psi_b, dpsi_dxi, dpsi_b_dxi, d2psi_dxi2, d2psi_b_dxi2,
     test, test_b, dtest_dxi, dtest_b_dxi, d2test_dxi2, d2test_b_dxi2);
 
-   dshape_u_and_dtest_u_eulerian_biharmonic(s,psi_u,dpsi_udxi,test_u,dtest_udxi);
+   dshape_u_and_dtest_u_eulerian_foeppl_von_karman(s,psi_u,dpsi_udxi,test_u,dtest_udxi);
    //Premultiply the weights and the Jacobian
    double W = w*J;
 
@@ -139,7 +148,7 @@ fill_in_generic_residual_contribution_biharmonic(Vector<double> &residuals,
    
     // Check 
 //    Vector<double> interpolated_w(6,0.0)pli:
-//    interpolated_w=this-> interpolated_w_biharmonic(s);
+//    interpolated_w=this-> interpolated_w_foeppl_von_karman(s);
 //   interpolated_w[0]=interpolated_w[0];
 //   interpolated_dwdxi(0,0)=interpolated_w[1];
 //   interpolated_dwdxi(0,1)=interpolated_w[2];
@@ -148,10 +157,10 @@ fill_in_generic_residual_contribution_biharmonic(Vector<double> &residuals,
 //   interpolated_d2wdxi2(0,2)=interpolated_w[5];
    //Get pressure function
    //-------------------
-   double  pressure;
-   get_pressure_biharmonic(ipt,interpolated_x,pressure);
+   double pressure(0.0);
    Vector<double> pressure_gradient(2,0.0);
-   (*in_plane_forcing_fct_pt())(interpolated_x,pressure_gradient);
+   get_pressure_foeppl_von_karman(ipt,interpolated_x,pressure);
+   get_in_plane_forcing_foeppl_von_karman(ipt,interpolated_x,pressure_gradient);
 
    // Loop over the nodal test functions
    for(unsigned l=0;l<n_node_w;l++)
@@ -634,7 +643,7 @@ void  FoepplVonKarmanEquations<DIM,NNODE_1D>::output(std::ostream &outfile,
   {
    // Get local coordinates of plot point
    this->get_s_plot(iplot,nplot,s);
-   u = interpolated_u_biharmonic(s,true);
+   u = interpolated_u_foeppl_von_karman(s,true);
 
    // Get x position as Vector
    this->get_coordinate_x(s,x);
@@ -644,7 +653,7 @@ void  FoepplVonKarmanEquations<DIM,NNODE_1D>::output(std::ostream &outfile,
 //  Vector<double> interpolated_x(2,0.0);
 //  Shape psi_u(n_node), test_u(n_node);
 //  // DShape dpsi_udxi(n_node,DIM), dtest_udxi(n_node,DIM);
-//  // dshape_u_and_dtest_u_eulerian_biharmonic(s,psi_u,dpsi_udxi,test_u,dtest_udxi);
+//  // dshape_u_and_dtest_u_eulerian_foeppl_von_karman(s,psi_u,dpsi_udxi,test_u,dtest_udxi);
 //
 //   // Check the u geometry
 //   // Loop over nodes
@@ -709,7 +718,7 @@ void  FoepplVonKarmanEquations<DIM,NNODE_1D>::output(FILE* file_pt,
     {
      fprintf(file_pt,"%g ",x[i]);
     }
-   u = interpolated_u_biharmonic(s);
+   u = interpolated_u_foeppl_von_karman(s);
    fprintf(file_pt,"%g \n",u[0]);//interpolated_w_poisson(s));
   }
 
@@ -840,7 +849,7 @@ void FoepplVonKarmanEquations<DIM,NNODE_1D>::compute_error_in_deflection(std::os
     d2psi_dxi2(n_node_w,n_position_type,3), d2test_dxi2(n_node_w,n_position_type,3),
     d2psi_b_dxi2(n_b_node,n_b_position_type,3), d2test_b_dxi2(n_b_node,n_b_position_type,3);
 
-   J=this-> d2shape_and_d2test_eulerian_biharmonic(s,
+   J=this-> d2shape_and_d2test_eulerian_foeppl_von_karman(s,
     psi, psi_b, dpsi_dxi, dpsi_b_dxi, d2psi_dxi2, d2psi_b_dxi2,
     test, test_b, dtest_dxi, dtest_b_dxi, d2test_dxi2, d2test_b_dxi2);
    }
@@ -853,7 +862,7 @@ void FoepplVonKarmanEquations<DIM,NNODE_1D>::compute_error_in_deflection(std::os
 
    // Get FE function value
    Vector<double> u_fe(this->required_nvalue(0),0.0);
-   u_fe = interpolated_u_biharmonic(s);
+   u_fe = interpolated_u_foeppl_von_karman(s);
 
    // Get exact solution at this point
    (*exact_soln_pt)(x,exact_soln);
@@ -953,7 +962,7 @@ void FoepplVonKarmanEquations<DIM,NNODE_1D>::compute_error(std::ostream &outfile
     d2psi_b_dxi2(n_b_node,n_b_position_type,3), d2test_b_dxi2(n_b_node,n_b_position_type,3);
 
 
-   J=this-> d2shape_and_d2test_eulerian_biharmonic(s,
+   J=this-> d2shape_and_d2test_eulerian_foeppl_von_karman(s,
     psi, psi_b, dpsi_dxi, dpsi_b_dxi, d2psi_dxi2, d2psi_b_dxi2,
     test, test_b, dtest_dxi, dtest_b_dxi, d2test_dxi2, d2test_b_dxi2);
    }
@@ -966,7 +975,7 @@ void FoepplVonKarmanEquations<DIM,NNODE_1D>::compute_error(std::ostream &outfile
 
    // Get FE function value
    Vector<double> u_fe(this->required_nvalue(0),0.0);
-   u_fe = interpolated_u_biharmonic(s);
+   u_fe = interpolated_u_foeppl_von_karman(s);
 
    // Get exact solution at this point
    (*exact_soln_pt)(x,exact_soln);

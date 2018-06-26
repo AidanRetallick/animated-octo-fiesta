@@ -220,16 +220,16 @@ public:
 protected:
 
  /// Shape, test functions & derivs. w.r.t. to global coords. Return Jacobian.
- void shape_and_test_biharmonic(const Vector<double> &s, Shape &psi,
+ void shape_and_test_foeppl_von_karman(const Vector<double> &s, Shape &psi,
   Shape& psi_b, Shape& test, Shape& test_b) const;
 
  /// Shape, test functions & derivs. w.r.t. to global coords. Return Jacobian.
- inline double dshape_and_dtest_eulerian_biharmonic(const Vector<double> &s,
+ inline double dshape_and_dtest_eulerian_foeppl_von_karman(const Vector<double> &s,
   Shape &psi, Shape &psi_b, DShape &dpsi_dx, DShape &dpsi_b_dx,
   Shape &test, Shape &test_b, DShape &dtest_dx, DShape &dtest_b_dx) const;
 
  /// Shape, test functions & derivs. w.r.t. to global coords. Return Jacobian.
- inline double d2shape_and_d2test_eulerian_biharmonic(const Vector<double> &s,
+ inline double d2shape_and_d2test_eulerian_foeppl_von_karman(const Vector<double> &s,
   Shape &psi, Shape &psi_b, DShape &dpsi_dx, DShape &dpsi_b_dx,
   DShape &d2psi_dx2, DShape &d2psi_b_dx2,
   Shape &test, Shape &test_b, DShape &dtest_dx, DShape &dtest_b_dx,
@@ -237,7 +237,7 @@ protected:
 
 // /// \short Shape, test functions & derivs. w.r.t. to global coords. at
 // /// integration point ipt. Return Jacobian.
-// inline double d2shape_and_d2test_eulerian_at_knot_biharmonic(const unsigned& ipt,
+// inline double d2shape_and_d2test_eulerian_at_knot_foeppl_von_karman(const unsigned& ipt,
 //                                                         Shape &psi,
 //                                                         DShape &dpsidx,
 //                                                         DShape &d2psidx,
@@ -246,14 +246,14 @@ protected:
 //                                                         DShape &d2testdx)
 //  const;
 //
-// inline double dshape_and_dtest_eulerian_at_knot_biharmonic(const unsigned &ipt,
+// inline double dshape_and_dtest_eulerian_at_knot_foeppl_von_karman(const unsigned &ipt,
 //                                                         Shape &psi,
 //                                                         DShape &dpsidx,
 //                                                         Shape &test,
 //                                                         DShape &dtestdx)
 //  const;
 
- inline double dshape_u_and_dtest_u_eulerian_biharmonic(const Vector<double> &s, 
+ inline double dshape_u_and_dtest_u_eulerian_foeppl_von_karman(const Vector<double> &s, 
   Shape &psi, DShape &dpsidx, Shape &test, DShape &dtestdx) const;
 
 // Private Data Members
@@ -646,14 +646,14 @@ void FoepplVonKarmanC1CurvedBellElement<DIM,NNODE_1D,BOUNDARY_ORDER>::
 /// Galerkin: Test functions = shape functions
 //======================================================================
 template <unsigned DIM, unsigned NNODE_1D, unsigned BOUNDARY_ORDER>
- void FoepplVonKarmanC1CurvedBellElement<DIM,NNODE_1D,BOUNDARY_ORDER>::shape_and_test_biharmonic(
+ void FoepplVonKarmanC1CurvedBellElement<DIM,NNODE_1D,BOUNDARY_ORDER>::shape_and_test_foeppl_von_karman(
   const Vector<double> &s, Shape &psi, Shape& psi_b,  Shape &test, Shape& test_b
   ) const
 {
  throw OomphLibError(
  "This still needs testing for curved elements.",
  "void FoepplVonKarmanC1CurvedBellElement<DIM,NNODE_1D,BOUNDARY_ORDER>::\
-shape_and_test_biharmonic(...)", OOMPH_EXCEPTION_LOCATION); // HERE
+shape_and_test_foeppl_von_karman(...)", OOMPH_EXCEPTION_LOCATION); // HERE
 
  // Get dummy shape functions for the Bell call
  DShape dpsidx(3,6,2);
@@ -698,7 +698,7 @@ shape_and_test_biharmonic(...)", OOMPH_EXCEPTION_LOCATION); // HERE
 //======================================================================
 template <unsigned DIM, unsigned NNODE_1D, unsigned BOUNDARY_ORDER>
  double FoepplVonKarmanC1CurvedBellElement<DIM,NNODE_1D,BOUNDARY_ORDER>::
- dshape_and_dtest_eulerian_biharmonic(const Vector<double> &s, Shape &psi,
+ dshape_and_dtest_eulerian_foeppl_von_karman(const Vector<double> &s, Shape &psi,
  Shape& psi_b, DShape &dpsidx, DShape& dpsi_b_dx,  Shape &test, Shape& test_b,
  DShape &dtestdx,DShape &dtest_b_dx) const
 {
@@ -706,7 +706,7 @@ template <unsigned DIM, unsigned NNODE_1D, unsigned BOUNDARY_ORDER>
  throw OomphLibError(
  "This still needs testing for curved elements.",
  "void FoepplVonKarmanC1CurvedBellElement<DIM,NNODE_1D,BOUNDARY_ORDER>::\
-dshape_and_dtest_biharmonic(...)",
+dshape_and_dtest_foeppl_von_karman(...)",
   OOMPH_EXCEPTION_LOCATION);// HERE
 
  // Now set up dummy DShape so we can call Bell
@@ -747,7 +747,7 @@ dshape_and_dtest_biharmonic(...)",
 
 template <unsigned DIM, unsigned NNODE_1D, unsigned BOUNDARY_ORDER>
  double FoepplVonKarmanC1CurvedBellElement<DIM,NNODE_1D,BOUNDARY_ORDER>::
-  d2shape_and_d2test_eulerian_biharmonic(const Vector<double> &s,  Shape &psi,
+  d2shape_and_d2test_eulerian_foeppl_von_karman(const Vector<double> &s,  Shape &psi,
   Shape &psi_b, DShape &dpsidx, DShape &dpsi_bdx,  DShape &d2psidx,
   DShape &d2psi_bdx,
   Shape &test, Shape &test_b, DShape &dtestdx, DShape &dtest_bdx,
@@ -956,7 +956,7 @@ inline void FoepplVonKarmanC1CurvedBellElement<DIM, NNODE_1D, BOUNDARY_ORDER>::
 //=============================================================================
 template <unsigned DIM, unsigned NNODE_1D, unsigned BOUNDARY_ORDER>
  double FoepplVonKarmanC1CurvedBellElement<DIM,NNODE_1D,BOUNDARY_ORDER>::
-  dshape_u_and_dtest_u_eulerian_biharmonic(const Vector<double> &s,Shape &psi,
+  dshape_u_and_dtest_u_eulerian_foeppl_von_karman(const Vector<double> &s,Shape &psi,
   DShape &dpsidx,  Shape &test,  DShape &dtestdx) const
 {
  // Initialise
@@ -1129,7 +1129,7 @@ DisplacementFctPt& u)
 ////==============================================================================
 //template <unsigned DIM, unsigned NNODE_1D, unsigned BOUNDARY_ORDER>
 //double FoepplVonKarmanC1CurvedBellElement<DIM,NNODE_1D,BOUNDARY_ORDER>::
-// dshape_and_dtest_eulerian_at_knot_biharmonic(
+// dshape_and_dtest_eulerian_at_knot_foeppl_von_karman(
 //  const unsigned &ipt,
 //  Shape &psi,
 //  DShape &dpsidx,
@@ -1144,7 +1144,7 @@ DisplacementFctPt& u)
 //
 //template<unsigned DIM, unsigned NNODE_1D>
 //double FoepplVonKarmanC1CurvedBellElement<DIM,NNODE_1D,BOUNDARY_ORDER>::
-// d2shape_and_d2test_eulerian_at_knot_biharmonic(
+// d2shape_and_d2test_eulerian_at_knot_foeppl_von_karman(
 //  const unsigned &ipt,
 //  Shape &psi,
 //  DShape &dpsidx,
