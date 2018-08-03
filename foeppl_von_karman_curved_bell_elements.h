@@ -406,7 +406,7 @@ order Elements.",OOMPH_CURRENT_FUNCTION,  OOMPH_EXCEPTION_LOCATION);
  // Set the integral pointer
  // HERE implement order 10 accuracy for faster 3rd order elements in clamped 
  // problems
- //delete this->integral_pt();
+ delete this->integral_pt();
  TGauss<2,13>* new_integral_pt = new TGauss<2,13>;
  this->set_integration_scheme(new_integral_pt); 
 
@@ -442,21 +442,39 @@ one side defined by a parametric function.", OOMPH_CURRENT_FUNCTION,
    break;
    case zero:
     // Everything cyclicly permutes
-    this->get_x(lvertices[0],vertices[2]);
-    this->get_x(lvertices[1],vertices[0]);
-    this->get_x(lvertices[2],vertices[1]);
+   //  this->get_x(lvertices[0],vertices[2]);
+   //  this->get_x(lvertices[1],vertices[0]);
+   //  this->get_x(lvertices[2],vertices[1]);
+    for(unsigned i=0;i<2;++i)
+     {
+      vertices[2][i]=this->node_pt(0)->x(i);
+      vertices[0][i]=this->node_pt(1)->x(i);
+      vertices[1][i]=this->node_pt(2)->x(i);
+     }
    break;
    case one:
-    // Everything cyclicly permutes
-    this->get_x(lvertices[1],vertices[2]);
-    this->get_x(lvertices[2],vertices[0]);
-    this->get_x(lvertices[0],vertices[1]);
+   // // Everything cyclicly permutes
+   // this->get_x(lvertices[1],vertices[2]);
+   // this->get_x(lvertices[2],vertices[0]);
+   // this->get_x(lvertices[0],vertices[1]);
+    for(unsigned i=0;i<2;++i)
+     {
+      vertices[2][i]=this->node_pt(1)->x(i);
+      vertices[0][i]=this->node_pt(2)->x(i);
+      vertices[1][i]=this->node_pt(0)->x(i);
+     }
    break;
    case two:
-    // Everything is just copied over
-    this->get_x(lvertices[2],vertices[2]);
-    this->get_x(lvertices[0],vertices[0]);
-    this->get_x(lvertices[1],vertices[1]);
+   // // Everything is just copied over
+   // this->get_x(lvertices[2],vertices[2]);
+   // this->get_x(lvertices[0],vertices[0]);
+   // this->get_x(lvertices[1],vertices[1]);
+    for(unsigned i=0;i<2;++i)
+     {
+      vertices[2][i]=this->node_pt(2)->x(i);
+      vertices[0][i]=this->node_pt(0)->x(i);
+      vertices[1][i]=this->node_pt(1)->x(i);
+     }
    break;
   }
  // Add the vertices to make the shape functions fully functional

@@ -203,6 +203,8 @@ UnstructuredFvKProblem(double element_area = 0.09);
 /// Destructor
 ~UnstructuredFvKProblem()
 {
+ delete (Surface_mesh_pt);
+ delete (Bulk_mesh_pt);
 };
 
 /// Update after solve (empty)
@@ -425,6 +427,16 @@ Trace_file.open(filename);
 
 oomph_info << "Number of equations: "
         << assign_eqn_numbers() << '\n';
+
+// Clean up memory
+delete outer_boundary_pt;
+delete outer_boundary_ellipse_pt;
+delete outer_curvilinear_boundary_pt[0];
+delete outer_curvilinear_boundary_pt[1];
+delete inner_open_boundaries_pt[0];
+delete inner_open_boundaries_pt[1];
+delete boundary2_pt;
+delete boundary3_pt;
 }
 
 
@@ -610,7 +622,7 @@ me in if you want additional curved boundaries..",
    unsigned index_of_interior_node=3;
 
    // Enum for the curved edge
-   MyC1CurvedElements::Edge edge;
+   MyC1CurvedElements::Edge edge(MyC1CurvedElements::none);
 
    // Vertices positions
    Vector<Vector<double> > xn(3,Vector<double>(2,0.0));
@@ -842,10 +854,32 @@ for (unsigned r = 0; r < n_region; r++)
  oomph_info << "Absolute norm of computed solution: " << sqrt(dummy_error) 
             << std::endl;
  
- oomph_info << "Norm of computed solution: " << sqrt(dummy_error/zero_norm)
+ oomph_info << "Norm of computed solution: " << sqrt(dummy_error)
             << std::endl;
  
- Trace_file << TestSoln::p_mag << " " << "\n ";
+// //Trace_file << TestSoln::p_mag << " " << "\n ";
+// //
+// // Find the solution at r=0
+// //   // ----------------------
+// MeshAsGeomObject* Mesh_as_geom_obj_pt=
+//  new MeshAsGeomObject(Bulk_mesh_pt);
+// Vector<double> s(2);
+// GeomObject* geom_obj_pt=0;
+// Vector<double> r(2,0.0);
+// Mesh_as_geom_obj_pt->locate_zeta(r,geom_obj_pt,s);
+// oomph_info << "pointer: " << geom_obj_pt << std::endl;
+// // The member function does not exist in this element
+// // it is instead called interpolated_u_foeppl_von_karman and returns a vector of 
+// // length 12 or 18 - the interface is pretty horrible so it may be something
+// // we want to tidy up
+// Vector<double> u_0(12,0.0);
+// u_0=dynamic_cast<ELEMENT*>(geom_obj_pt)->interpolated_u_foeppl_von_karman(s);
+//
+//
+// oomph_info << "w in the middle: " << u_0[0] << std::endl;
+//
+// Trace_file << TestSoln::p_mag
+//            << " " << u_0[0] << '\n';
 
 // Doc error and return of the square of the L2 error
 //---------------------------------------------------
@@ -855,12 +889,9 @@ sprintf(filename,"RESLT/L2-norm%i-%f.dat",
 some_file.open(filename);
 
 some_file<<"### L2 Norm\n";
-some_file<<"##  Format: err^2 norm^2 log(err/norm) \n";
+some_file<<"##  Format: err^2 norm^2 \n";
 // Print error in prescribed format
-some_file<< dummy_error <<" "<< zero_norm <<" ";
-
-// Only divide by norm if its nonzero
-some_file<<0.5*(log10(fabs(dummy_error))-log10(zero_norm))<<"\n";
+some_file<< dummy_error <<" "<< zero_norm <<"\n";
 some_file.close();
 
 // Increment the doc_info number
