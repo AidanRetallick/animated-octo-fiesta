@@ -857,29 +857,29 @@ for (unsigned r = 0; r < n_region; r++)
  oomph_info << "Norm of computed solution: " << sqrt(dummy_error)
             << std::endl;
  
-// //Trace_file << TestSoln::p_mag << " " << "\n ";
-// //
-// // Find the solution at r=0
-// //   // ----------------------
-// MeshAsGeomObject* Mesh_as_geom_obj_pt=
-//  new MeshAsGeomObject(Bulk_mesh_pt);
-// Vector<double> s(2);
-// GeomObject* geom_obj_pt=0;
-// Vector<double> r(2,0.0);
-// Mesh_as_geom_obj_pt->locate_zeta(r,geom_obj_pt,s);
-// oomph_info << "pointer: " << geom_obj_pt << std::endl;
-// // The member function does not exist in this element
-// // it is instead called interpolated_u_foeppl_von_karman and returns a vector of 
-// // length 12 or 18 - the interface is pretty horrible so it may be something
-// // we want to tidy up
-// Vector<double> u_0(12,0.0);
-// u_0=dynamic_cast<ELEMENT*>(geom_obj_pt)->interpolated_u_foeppl_von_karman(s);
-//
-//
-// oomph_info << "w in the middle: " << u_0[0] << std::endl;
-//
-// Trace_file << TestSoln::p_mag
-//            << " " << u_0[0] << '\n';
+ //Trace_file << TestSoln::p_mag << " " << "\n ";
+ //
+ // Find the solution at r=0
+ //   // ----------------------
+ MeshAsGeomObject* Mesh_as_geom_obj_pt=
+  new MeshAsGeomObject(Bulk_mesh_pt);
+ Vector<double> s(2);
+ GeomObject* geom_obj_pt=0;
+ Vector<double> r(2,0.0);
+ Mesh_as_geom_obj_pt->locate_zeta(r,geom_obj_pt,s);
+ oomph_info << "pointer: " << geom_obj_pt << std::endl;
+ // The member function does not exist in this element
+ // it is instead called interpolated_u_foeppl_von_karman and returns a vector of 
+ // length 12 or 18 - the interface is pretty horrible so it may be something
+ // we want to tidy up
+ Vector<double> u_0(12,0.0);
+ u_0=dynamic_cast<ELEMENT*>(geom_obj_pt)->interpolated_u_foeppl_von_karman(s);
+
+
+ oomph_info << "w in the middle: " << u_0[0] << std::endl;
+
+ Trace_file << TestSoln::p_mag
+            << " " << u_0[0] << '\n';
 
 // Doc error and return of the square of the L2 error
 //---------------------------------------------------
@@ -897,6 +897,8 @@ some_file.close();
 // Increment the doc_info number
 Doc_info.number()++;
 
+// Clean up
+delete Mesh_as_geom_obj_pt;
 } // end of doc
 
 //============start_of_delete_flux_elements==============================

@@ -80,6 +80,22 @@ b, const DisplacementFctPt& u);
  /// \short get the coordinate
  inline void get_coordinate_x(const Vector<double>& s, Vector<double>& x) const;
 
+ /// \short get the coordinate i
+ double interpolated_x (const Vector<double>s, const unsigned &i) const 
+  { Vector<double> r(2); get_coordinate_x(s,r); return r[i]; }  
+
+ /// \short Get the zeta coordinate
+ inline void interpolated_zeta(const Vector<double> &s
+  ,Vector<double> &zeta) const
+ {
+  /*
+  // If there is a macro element use it
+  if(this->Macro_elem_pt!=0) {this->get_x_from_macro_element(s,zeta);}
+  */
+  //Otherwise interpolate zeta_nodal using the shape functions
+  /*else*/ {get_coordinate_x(s,zeta);}
+ }
+
  // Upgrade an element to its curved counterpart
  inline void upgrade_to_curved_element(const Edge& curved_edge, const double& s_ubar,
   const double& s_obar,
