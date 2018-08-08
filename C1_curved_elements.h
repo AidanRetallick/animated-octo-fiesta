@@ -33,6 +33,7 @@
 //oomph-lib headers
 #include "generic/Vector.h"
 #include "generic/shape.h"
+#include "my_geom_object.h"
 #include "MyBellShape.h"
 
 namespace oomph {
@@ -108,7 +109,7 @@ public:
   BernadouElementBasis(const VertexList& verts, const double& su, const double&so)
     : vertices(verts), s_ubar(su), s_obar(so), Curved_edge(none)
    {
-   // Fill in the vectors here - means we only have to calculate them once
+   // HERE Fill in the vectors here - means we only have to calculate them once
    }
 
   // Destructor
@@ -117,41 +118,18 @@ public:
   // Check the element
   inline void self_check() const;
   
+  // Access function
+  CurvilineGeomObject*& parametric_curve_pt()
+   {return Parametric_curve_pt;}
+
+  // Read only access (const version)
+  const CurvilineGeomObject* parametric_curve_pt() const 
+   {return Parametric_curve_pt;}
 
   // Get the physical coordinate
   void coordinate_x(const Vector<double>& s, Vector<double>& fk) const;
   // {Vector<double> s_basic(s); permute_shape(s_basic); return f_k(s_basic); }
   
-  // The parametric mapping
-  // Get Function pointer to chi
-  inline ParametricCurveFctPt& get_chi_fct_pt()
-   {return chi_fct_pt;}
-
-  // The parametric mapping const version
-  // Get Function pointer to chi
-  inline const ParametricCurveFctPt& get_chi_fct_pt() const
-   {return chi_fct_pt;}
-
-  // The derivative of the mapping
-  // Get Function pointer to d_chi
-  inline ParametricCurveFctPt& get_d_chi_fct_pt()
-   {return d_chi_fct_pt;}
-
-  // The derivative of the mapping
-  // Get Function pointer to d_chi
-  inline const ParametricCurveFctPt& get_d_chi_fct_pt() const
-   {return d_chi_fct_pt;}
-
-  // The second derivative of the mapping
-  // Get Function pointer to d_chi
-  inline ParametricCurveFctPt& get_d2_chi_fct_pt()
-   {return d2_chi_fct_pt;}
-
-  // The second derivative of the mapping
-  // Get Function pointer to d_chi
-  inline const ParametricCurveFctPt& get_d2_chi_fct_pt() const
-   {return d2_chi_fct_pt;}
-
   // Get the vertices
   inline VertexList& get_vertices()
    {return vertices;}
@@ -184,22 +162,22 @@ public:
   // Define the curved boundary functions
   // The parametric boundary chi(s)
   inline void chi (const double& s1, Vector<double>& chi) const
-   {(*chi_fct_pt)(s1,chi);}
+   {Parametric_curve_pt->position(s1,chi);}
 
   // As a function of local coordinate s1
   inline void psi (const double& s1, Vector<double>& psi) const
-   {(*chi_fct_pt)(s_ubar+(s_obar-s_ubar)*s1,psi);}
+   {Parametric_curve_pt->position(s_ubar+(s_obar-s_ubar)*s1,psi);}
 
   // The approximated (3rd order) polynomial
   void psi_h  (const double& s1, Vector<double>& psi_h) const;
 
   // chi'(s)
   inline void d_chi(const double& s1, Vector<double>& d_chi) const
-   {(*d_chi_fct_pt)(s1,d_chi);}
+   {Parametric_curve_pt->dposition(s1,d_chi);}
 
   // chi''(s)
   inline void d2_chi(const double& s1, Vector<double>& d_chi) const
-   {(*d2_chi_fct_pt)(s1,d_chi);}
+   {Parametric_curve_pt->d2position(s1,d_chi);}
 
   // psi'(s1)
   void d_psi  (const double& s1, Vector<double>& d_psi) const;
@@ -228,14 +206,7 @@ private:
  // The vertices
  VertexList vertices;
 
- // Edge function pointer on side 2 (opposite vertex 2)
- ParametricCurveFctPt chi_fct_pt;
-
- // dEdge  derivative function pointer (opposite vertex 2)
- ParametricCurveFctPt d_chi_fct_pt;
-
- // dEdge  derivative function pointer (opposite vertex 2)
- ParametricCurveFctPt d2_chi_fct_pt;
+ CurvilineGeomObject* Parametric_curve_pt;
 
  // Parametric coordinate at vertex 0 and 1 respectively
  double s_ubar;
@@ -744,8 +715,8 @@ definitions.", OOMPH_CURRENT_FUNCTION,  OOMPH_EXCEPTION_LOCATION);
  // function
  Vector<Vector<double> > local_vertices(3,Vector<double>(2,0.0));
  Vector<double> vertex_0(2,0.0), vertex_1(2,0.0);
- (*chi_fct_pt)(s_ubar,vertex_0);
- (*chi_fct_pt)(s_obar,vertex_1);
+ Parametric_curve_pt->position(s_ubar,vertex_0);
+ Parametric_curve_pt->position(s_obar,vertex_1);
 
  // Magnitude of the difference
  const double diff0=sqrt(pow(vertex_0[0]-vertices[0][0],2)
@@ -757,8 +728,8 @@ definitions.", OOMPH_CURRENT_FUNCTION,  OOMPH_EXCEPTION_LOCATION);
  // The parametric curve does not start and end at the vertices.
  if(vertices_differ_from_curve)
   {
-   oomph_info<<"Difference of "<<diff0<<" "<<diff1<<"between assigned vertices 0"
-             <<"and 1 respectively.\n";
+   oomph_info<<"Difference of "<<diff0<<" "<<diff1<<" between assigned vertices 0"
+             <<" and 1 respectively.\n";
    throw OomphLibError("Non zero difference detected between assigned vertices \
 and the start and end of the provided Parametric boundary.", 
     OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);

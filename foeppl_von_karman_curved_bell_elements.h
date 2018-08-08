@@ -34,6 +34,7 @@
 #include "foeppl_von_karman_elements.h"
 #include "MyBellShape.h"
 #include "C1_curved_elements.h"
+#include "my_geom_object.h"
 
 namespace oomph
 {
@@ -99,11 +100,7 @@ b, const DisplacementFctPt& u);
  // Upgrade an element to its curved counterpart
  inline void upgrade_to_curved_element(const Edge& curved_edge, const double& s_ubar,
   const double& s_obar,
-  typename MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::ParametricCurveFctPt parametric_edge,
-  typename MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::ParametricCurveFctPt
-d_parametric_edge,
- typename MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::ParametricCurveFctPt
-d2_parametric_edge=0);
+  CurvilineGeomObject* parametric_edge);
  
  void shape_u(const Vector<double> &s, Shape &psi) const;
   
@@ -390,10 +387,7 @@ void FoepplVonKarmanC1CurvedBellElement<DIM,NNODE_1D,BOUNDARY_ORDER>::get_coordi
 template <unsigned DIM, unsigned NNODE_1D, unsigned BOUNDARY_ORDER>
 inline void FoepplVonKarmanC1CurvedBellElement<DIM,NNODE_1D,BOUNDARY_ORDER>::upgrade_to_curved_element
  (const Edge& curved_edge, const double& s_ubar, const double& s_obar,
- typename MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::ParametricCurveFctPt parametric_edge,
- typename MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::ParametricCurveFctPt
-d_parametric_edge ,
- typename MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER>::ParametricCurveFctPt d2_parametric_edge)
+  CurvilineGeomObject* parametric_edge)
 {
  #ifdef PARANOID
  // When upgrading add to count
@@ -406,14 +400,11 @@ d_parametric_edge ,
    "Cannot upgrade more than a single edge to be curved in C1 Curved Bell \
 Elements.",OOMPH_CURRENT_FUNCTION,  OOMPH_EXCEPTION_LOCATION);
   }
- // Check if higher order element
- if(BOUNDARY_ORDER == 5 && d2_parametric_edge == 0)
-  {
-   // SCREAM
-   throw OomphLibError(
-   "Need to supply a none null d2_parametric_edge function pointer for fifth\
-order Elements.",OOMPH_CURRENT_FUNCTION,  OOMPH_EXCEPTION_LOCATION);
-  }
+//  // Check if higher order element
+//  if(BOUNDARY_ORDER == 5)
+//   {
+//    // SCREAM
+//   }
  #endif
  using namespace MyC1CurvedElements;
  // Add the curved edge
@@ -432,9 +423,7 @@ order Elements.",OOMPH_CURRENT_FUNCTION,  OOMPH_EXCEPTION_LOCATION);
  Bubble_w_internal_index = this->add_internal_data(new Data(Curved_shape.n_internal_dofs()));
 
  // Set up the data of the element
- Curved_shape.get_chi_fct_pt() = parametric_edge;
- Curved_shape.get_d_chi_fct_pt() = d_parametric_edge;
- Curved_shape.get_d2_chi_fct_pt() = d2_parametric_edge;
+ Curved_shape.parametric_curve_pt() = parametric_edge;
  Curved_shape.set_s_ubar() = s_ubar;
  Curved_shape.set_s_obar() = s_obar;
  typename BernadouElementBasis<BOUNDARY_ORDER>::VertexList  vertices(3,Vector<double>(2,0.0));

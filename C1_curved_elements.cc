@@ -138,7 +138,7 @@ template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::d_psi(const double& s1, Vector<double>& dpsi) const
  {
   const double s=(s_ubar+(s_obar-s_ubar)*s1);
-  (*d_chi_fct_pt)(s,dpsi);
+  Parametric_curve_pt->position(s,dpsi);
   // Now scale chi to give d_psi
   for(unsigned i=0;i<2;++i)
    {dpsi[i]*=(s_obar-s_ubar);}

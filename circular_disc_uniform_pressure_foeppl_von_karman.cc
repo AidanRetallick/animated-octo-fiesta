@@ -36,6 +36,7 @@
 
 // The mesh
 #include "meshes/triangle_mesh.h"
+#include "my_geom_object.h"
 
 using namespace std;
 using namespace oomph;
@@ -105,6 +106,10 @@ void  d_parametric_edge_1(const double& s, Vector<double>& dx)
 // Derivative of parametric function
 void  d2_parametric_edge_1(const double& s, Vector<double>& dx)
 { dx[0] =-std::sin(s);  dx[1] = std::cos(s);};
+
+// Default construction is enough
+CurvilineCircleTop parametric_curve_top = CurvilineCircleTop();
+CurvilineCircleBottom parametric_curve_bottom = CurvilineCircleBottom();
 
 // Get s from x for part 0 of the boundary (inverse mapping - for convenience)
 double get_s_0(const Vector<double>& x)
@@ -581,7 +586,7 @@ upgrade_edge_elements_to_curve(const unsigned &b, Mesh* const &bulk_mesh_pt)
  void (*d_parametric_edge_fct_pt)(const double& s, Vector<double> &dx);
  void (*d2_parametric_edge_fct_pt)(const double& s, Vector<double>& dx);
  double (*get_arc_position)(const Vector<double>& s);
- 
+ CurvilineGeomObject parametric_curve_pt; 
 // Define the functions for each part of the boundary
  switch (b)
   {
@@ -591,6 +596,7 @@ upgrade_edge_elements_to_curve(const unsigned &b, Mesh* const &bulk_mesh_pt)
    d_parametric_edge_fct_pt = &TestSoln::d_parametric_edge_0;
    d2_parametric_edge_fct_pt = &TestSoln::d2_parametric_edge_0;
    get_arc_position = &TestSoln::get_s_0;
+   parametric_curve_pt = &TestSoln::parametric_curve_top;
   break;
 
   // Lower boundary
@@ -599,6 +605,7 @@ upgrade_edge_elements_to_curve(const unsigned &b, Mesh* const &bulk_mesh_pt)
    d_parametric_edge_fct_pt = &TestSoln::d_parametric_edge_1;
    d2_parametric_edge_fct_pt = &TestSoln::d2_parametric_edge_1;
    get_arc_position = &TestSoln::get_s_1;
+   parametric_curve_pt = &TestSoln::parametric_curve_bottom;
   break;
 
   default:
@@ -689,13 +696,13 @@ the mesh has returned an inverted element (less likely)",
     }
 
    // Upgrade it
-   if(bulk_el_pt->boundary_order() == 5)
+  // if(bulk_el_pt->boundary_order() == 5)
     bulk_el_pt->upgrade_to_curved_element(edge,s_ubar,s_obar,
-     *parametric_edge_fct_pt,*d_parametric_edge_fct_pt,
-     *d2_parametric_edge_fct_pt);
-   else/* if boundary_order() == 3 */
-    bulk_el_pt->upgrade_to_curved_element(edge,s_ubar,s_obar,
-     *parametric_edge_fct_pt,*d_parametric_edge_fct_pt);
+     parametric_curve_pt); //*d_parametric_edge_fct_pt,
+  //   // *d2_parametric_edge_fct_pt);
+  //  else/* if boundary_order() == 3 */
+  //   bulk_el_pt->upgrade_to_curved_element(edge,s_ubar,s_obar,&TestSoln::parametric_curve);
+  //    /**parametric_edge_fct_pt,*d_parametric_edge_fct_pt);*/
     
   }
 }// end upgrade elements
