@@ -83,47 +83,9 @@ double p_mag = 1;
 double nu = 0.5;
 
 /*                     PARAMETRIC BOUNDARY DEFINITIONS                        */
-// Here we define functions for the Parametric Boundary Definition 
-
-// Parametric function for boundary part 0 and derivatives
-// This is a circlular arc
-void parametric_edge_0(const double& s, Vector<double>& x)
- { x[0] =-std::sin(s);  x[1] = std::cos(s);}
-// Derivative of parametric function
-void d_parametric_edge_0(const double& s, Vector<double>& dx)
- { dx[0] =-std::cos(s);  dx[1] =-std::sin(s);}
-// Derivative of parametric function
-void d2_parametric_edge_0(const double& s, Vector<double>& dx)
- { dx[0] = std::sin(s);  dx[1] =-std::cos(s);}
-
-// Parametric function for boundary part 1 and derivatives
-// This is a circlular arc!
-void parametric_edge_1(const double& s, Vector<double>& x)
-{ x[0] = std::sin(s);  x[1] =-std::cos(s);}
-// Derivative of parametric function
-void  d_parametric_edge_1(const double& s, Vector<double>& dx)
-{ dx[0] = std::cos(s);  dx[1] = std::sin(s);};
-// Derivative of parametric function
-void  d2_parametric_edge_1(const double& s, Vector<double>& dx)
-{ dx[0] =-std::sin(s);  dx[1] = std::cos(s);};
-
-// Default construction is enough
-CurvilineCircleTop parametric_curve_top = CurvilineCircleTop();
-CurvilineCircleBottom parametric_curve_bottom = CurvilineCircleBottom();
-
-// Get s from x for part 0 of the boundary (inverse mapping - for convenience)
-double get_s_0(const Vector<double>& x)
-{
-// The arc length (parametric parameter) for the upper semi circular arc
- return atan2(-x[0],x[1]);
-}
-
-// Get s from x for part 1 of the boundary (inverse mapping - for convenience)
-double get_s_1(const Vector<double>& x)
-{
-// The arc length (parametric parameter) for the lower semi circular arc
-return atan2(x[0],-x[1]);
-}
+// Here we create the geom objects for the Parametric Boundary Definition 
+CurvilineCircleTop parametric_curve_top;
+CurvilineCircleBottom parametric_curve_bottom;
 
 // The normal and tangential directions. We need the derivatives so we can form
 // The Hessian and the Jacobian of the rotation
@@ -582,29 +544,18 @@ upgrade_edge_elements_to_curve(const unsigned &b, Mesh* const &bulk_mesh_pt)
  // How many bulk elements adjacent to boundary b
  unsigned n_element = bulk_mesh_pt-> nboundary_element(b);
  // These depend on the boundary we are on
- void (*parametric_edge_fct_pt)(const double& s, Vector<double>&x);
- void (*d_parametric_edge_fct_pt)(const double& s, Vector<double> &dx);
- void (*d2_parametric_edge_fct_pt)(const double& s, Vector<double>& dx);
- double (*get_arc_position)(const Vector<double>& s);
- CurvilineGeomObject parametric_curve_pt; 
-// Define the functions for each part of the boundary
+ CurvilineGeomObject* parametric_curve_pt; 
+
+ // Define the functions for each part of the boundary
  switch (b)
   {
   // Upper boundary
   case 0:
-   parametric_edge_fct_pt = &TestSoln::parametric_edge_0;
-   d_parametric_edge_fct_pt = &TestSoln::d_parametric_edge_0;
-   d2_parametric_edge_fct_pt = &TestSoln::d2_parametric_edge_0;
-   get_arc_position = &TestSoln::get_s_0;
    parametric_curve_pt = &TestSoln::parametric_curve_top;
   break;
 
   // Lower boundary
   case 1:
-   parametric_edge_fct_pt = &TestSoln::parametric_edge_1;
-   d_parametric_edge_fct_pt = &TestSoln::d_parametric_edge_1;
-   d2_parametric_edge_fct_pt = &TestSoln::d2_parametric_edge_1;
-   get_arc_position = &TestSoln::get_s_1;
    parametric_curve_pt = &TestSoln::parametric_curve_bottom;
   break;
 
@@ -658,9 +609,9 @@ me in if you want additional curved boundaries..",
    double s_ubar, s_obar;
 
    // s at the next (cyclic) node after interior
-   s_ubar = (*get_arc_position)(xn[(index_of_interior_node+1) % 3]);
+   s_ubar = parametric_curve_pt->get_zeta(xn[(index_of_interior_node+1) % 3]);
    // s at the previous (cyclic) node before interior
-   s_obar = (*get_arc_position)(xn[(index_of_interior_node+2) % 3]);
+   s_obar = parametric_curve_pt->get_zeta(xn[(index_of_interior_node+2) % 3]);
 
    // Assign edge case
    switch(index_of_interior_node)
@@ -696,14 +647,8 @@ the mesh has returned an inverted element (less likely)",
     }
 
    // Upgrade it
-  // if(bulk_el_pt->boundary_order() == 5)
-    bulk_el_pt->upgrade_to_curved_element(edge,s_ubar,s_obar,
-     parametric_curve_pt); //*d_parametric_edge_fct_pt,
-  //   // *d2_parametric_edge_fct_pt);
-  //  else/* if boundary_order() == 3 */
-  //   bulk_el_pt->upgrade_to_curved_element(edge,s_ubar,s_obar,&TestSoln::parametric_curve);
-  //    /**parametric_edge_fct_pt,*d_parametric_edge_fct_pt);*/
-    
+   bulk_el_pt->upgrade_to_curved_element(edge,s_ubar,s_obar,
+    parametric_curve_pt);     
   }
 }// end upgrade elements
 

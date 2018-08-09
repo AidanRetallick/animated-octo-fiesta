@@ -110,6 +110,15 @@ public:
     OOMPH_EXCEPTION_LOCATION);
   }
 
+ // Get s from x for part 0 of the boundary (inverse mapping - for convenience)
+ virtual double get_zeta(const Vector<double>& x)
+ {
+   throw OomphLibError(
+    "You must specify get_zeta() for your own object! \n",
+    OOMPH_CURRENT_FUNCTION,
+    OOMPH_EXCEPTION_LOCATION);
+ }
+
 };
 
 
