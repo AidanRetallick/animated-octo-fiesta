@@ -42,8 +42,8 @@ void oomph::MyC1CurvedElements::BernadouElementBasis<3>::
 /// \short Fill in inverse matrix to convert the monomials to the basic shape 
 /// functions (BROKEN)
 template <>
-void oomph::MyC1CurvedElements::BernadouElementBasis<2>::
- inverse_monomial_to_basic_matrix(oomph::DenseMatrix<double>& m) const;
+void oomph::MyC1CurvedElements::BernadouElementBasis<3>::
+ inverse_monomial_to_basic_matrix(DenseDoubleMatrix& ib2l) const;
 
 /// Fill in the (precomputed) full basic polynomials 
 template <>
@@ -68,7 +68,7 @@ void oomph::MyC1CurvedElements::BernadouElementBasis<5>::
 /// Fill in inverse matrix to convert the monomials to the basic shape functions
 template <>
 void oomph::MyC1CurvedElements::BernadouElementBasis<5>::
- inverse_monomial_to_basic_matrix(oomph::DenseMatrix<double>& m) const;
+ inverse_monomial_to_basic_matrix(DenseDoubleMatrix& ib2l) const;
 
 /// Fill in the (precomputed) full basic polynomials 
 template <>
