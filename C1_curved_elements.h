@@ -39,16 +39,18 @@
 namespace oomph {
 
 namespace MyC1CurvedElements {
-// Now for the BernadouElementBasis class
-// These are based on the curved C1 elements of Bernadou and Boisserie 1994 but
-// adapted for use with the Bell elements rather than Argyris.
 
-// The structure of these elements is as follows:
+/// \short enum to enumerate the possible edges that could be curved
+enum Edge {none=-1,zero=0,one=1,two=2};
 
-// Fk maps a point on the reference element to a point on the curved element. It
-// is determined by the vertex nodal positions (ai) and the prescribed curved
-// boundary \chi(s).
-
+/// Now for the BernadouElementBasis class
+/// These are based on the curved C1 elements of Bernadou and Boisserie 1994 but
+/// adapted for use with the Bell elements rather than Argyris.
+/// The structure of these elements is as follows:
+/// Fk maps a point on the reference element to a point on the curved element. It
+/// is determined by the vertex nodal positions (ai) and the prescribed curved
+/// boundary \chi(s).
+/// 
 /* The Structure                                                              */
 /*      @                                                                     */
 /*     /(       Dij      /(          Mij         |\                           */
@@ -68,31 +70,24 @@ namespace MyC1CurvedElements {
 /* osite ai. ai are nodes, bi are midside points and di are mid-midside points*/
 /* ei are internal dofs at points Fk(ei_hat) where ei hat are at (1/4,1/4)    */
 /* (1/4,1/2) and (1/2,1/4)                                                    */
-
-// We first map the dofs from global to local dofs such that the derivatives are
-// now all with respect to local tangents.
-// This is just done using local rotations of the derivative dofs using a 24x24
-// matrix that we refer to as d_matrix
-
-// We then map the 21 local dofs onto the 36 basic 'dofs': which aren't really
-// dofs. The mapping is curved so a line on the basic element will map to a
-// curve on the physical space. For this reason we need a higher order
-// representation in the basic space: with the constraint that along the
-// boundaries the traces and normal derivatives are compatible with the Bell
-// element.
-
-// This means on each boundary the trace must be a fifth order polynomial of the
-// tangent coordinate, which is defined by the degrees of freedom shared by the
-// Bell element i.e the dofs: w w,i and w,ij.
-// Similarly the trace of w,n must be the third order polynomial defined by w,i
-// and w,ij.
-
-// The solution is then represented on the curved element as a seventh order
-// bivariate polynomial that is constrained to have the aforementioned traces.
-
-/// \short enum to enumerate the possible edges that could be curved
-enum Edge {none=-1,zero=0,one=1,two=2};
-
+/// We first map the dofs from global to local dofs such that the derivatives are
+/// now all with respect to local tangents.
+/// This is just done using local rotations of the derivative dofs using a 24x24
+/// matrix that we refer to as d_matrix
+/// We then map the 21 local dofs onto the 36 basic 'dofs': which aren't really
+/// dofs. The mapping is curved so a line on the basic element will map to a
+/// curve on the physical space. For this reason we need a higher order
+/// representation in the basic space: with the constraint that along the
+/// boundaries the traces and normal derivatives are compatible with the Bell
+/// element.
+///
+/// This means on each boundary the trace must be a fifth order polynomial of the
+/// tangent coordinate, which is defined by the degrees of freedom shared by the
+/// Bell element i.e the dofs: w w,i and w,ij.
+/// Similarly the trace of w,n must be the third order polynomial defined by w,i
+/// and w,ij.
+/// The solution is then represented on the curved element as a seventh order
+/// bivariate polynomial that is constrained to have the aforementioned traces.
 template <unsigned BOUNDARY_ORDER>
 class BernadouElementBasis
 {
@@ -103,7 +98,7 @@ public:
 
   /// \short Shorthand for a vector of vectors containining the vertices
   typedef Vector<Vector<double> > VertexList;
-  // Constructor
+  /// Constructor
   BernadouElementBasis(){}
 
   BernadouElementBasis(const VertexList& verts, const double& su, const double&so)
@@ -112,107 +107,117 @@ public:
    // HERE Fill in the vectors here - means we only have to calculate them once
    }
 
-  // Destructor
+  /// Destructor
   ~BernadouElementBasis(){}
 
-  // Check the element
+  /// Check the element
   inline void self_check() const;
   
-  // Access function
+  /// Access function
   CurvilineGeomObject*& parametric_curve_pt()
    {return Parametric_curve_pt;}
 
-  // Read only access (const version)
+  /// Read only access (const version)
   const CurvilineGeomObject* parametric_curve_pt() const 
    {return Parametric_curve_pt;}
 
-  // Get the physical coordinate
+  /// Get the physical coordinate
   void coordinate_x(const Vector<double>& s, Vector<double>& fk) const;
   // {Vector<double> s_basic(s); permute_shape(s_basic); return f_k(s_basic); }
   
-  // Get the vertices
+  /// Get the vertices
   inline VertexList& get_vertices()
    {return vertices;}
 
-  // Get the vertices const version
+  /// Get the vertices const version
   inline VertexList get_vertices() const
    {return vertices;}
 
-  // Set the values of s at start and end of parametric curv//e section
+  /// Get the values of s at start of parametric curve section
   inline const double& get_s_ubar() const
     {return s_ubar;}
 
+  /// Get the values of s at end of parametric curve section
   inline const double& get_s_obar() const
     {return s_obar;}
 
-  // Get the values of s at start and end of parametric curve section
+  /// Rererence access to the values of s at start of parametric curve section
   inline double& set_s_ubar()
     {return s_ubar;}
 
+  /// Reference access the values of s at end of parametric curve section
   inline double& set_s_obar()
     {return s_obar;}
 
-  // Set and get got the edge case
+  /// Set which edge is curved
   inline void set_edge(const Edge& edge){Curved_edge = edge;}
  
+  /// Access by reference which edge is curved (const version)
   inline const Edge& get_edge() const {return Curved_edge;}
   
+  /// Access by reference which edge is curved
   inline Edge& get_edge(){return Curved_edge;}
 
-  // Define the curved boundary functions
-  // The parametric boundary chi(s)
+  /// Define the curved boundary functions
+  /// The parametric boundary chi(s)
   inline void chi (const double& s1, Vector<double>& chi) const
    {Parametric_curve_pt->position(s1,chi);}
 
-  // As a function of local coordinate s1
+  /// The parametric function in terms of the local coordinate s1
   inline void psi (const double& s1, Vector<double>& psi) const
    {Parametric_curve_pt->position(s_ubar+(s_obar-s_ubar)*s1,psi);}
 
-  // The approximated (3rd order) polynomial
+  /// The approximated (3rd order) polynomial
   void psi_h  (const double& s1, Vector<double>& psi_h) const;
 
-  // chi'(s)
+  /// The derivative of the parametric representation wrt. parametric coordinate
+  /// s : chi'(s)
   inline void d_chi(const double& s1, Vector<double>& d_chi) const
    {Parametric_curve_pt->dposition(s1,d_chi);}
 
-  // chi''(s)
+  /// The 2nd derivative of the parametric representation wrt. parametric 
+  /// coordinate, s : chi'''(s)
   inline void d2_chi(const double& s1, Vector<double>& d_chi) const
    {Parametric_curve_pt->d2position(s1,d_chi);}
 
-  // psi'(s1)
+  /// The derivative of the parametric function wrt. local coordinate s1 in terms 
+  /// of the local coordinate s1
   void d_psi  (const double& s1, Vector<double>& d_psi) const;
   
-  // Precompute it!
+  /// Fill in the full association matrix 
   void fill_in_full_association_matrix(DenseMatrix<double>& conversion_matrix);
 protected:
-  // The mapping F_k - a polynomial degree 3 PRIVATE
+  /// The mapping F_k - a polynomial degree 3 PRIVATE
   void f_k (const Vector<double>& s, Vector<double>& fk) const;
 
-  // The Jacobian PRIVATE
+  /// The basic Jacobian PRIVATE
   void get_basic_jacobian(const Vector<double> s, DenseMatrix<double>& jac)const;
 
-  // The Hessian of the global coordinate (of the vector mapping) - like a second
-  // order Jacobian.
-  //        d^2 x_i
-  // or:   ----------    (rank 3) with x the global coordinate and s the local.
-  //       d s_i ds_j
-  // PRIVATE
+  /// The Hessian of the global coordinate (of the vector mapping) - like a second
+  /// order Jacobian.
+  ///        d^2 x_i
+  /// or:   ----------    (rank 3) with x the global coordinate and s the local.
+  ///       d s_i ds_j
+  /// PRIVATE
   void get_basic_hessian(const Vector<double>& s,
     RankThreeTensor<double>& hess) const;
 
 
 private:
 
- // The vertices
+ /// The vertices supplied from the element
  VertexList vertices;
 
+ /// The parametric curve as a (special type) of geom object
  CurvilineGeomObject* Parametric_curve_pt;
 
- // Parametric coordinate at vertex 0 and 1 respectively
+ /// Parametric coordinate at vertex 0 (assuming 2 is always curved edge)
  double s_ubar;
+
+ /// Parametric coordinate at vertex 1 (assuming 2 is always curved edge)
  double s_obar;
 
- // Whih edge is curved
+ /// Whih edge is curved
  Edge Curved_edge;
 
 protected:
@@ -220,35 +225,35 @@ protected:
   /* These functions are used in the construction of shape - but not intended */
   /* for use at the user end                                                  */
   
-  // Get the edge permutation, without the index shift
+  /// Get the edge permutation, without the index shift
   inline void permute_shape(Vector<double>& s) const;
   
-  // Get the edge permutation
+  /// Get the edge permutation
   inline void get_jacobian_of_permute(DenseMatrix<double>& jac) const;
 
-  // Get the edge permutation
+  /// Get the edge permutation
   inline void nodal_index_shift(unsigned& index_shift) const;
 
 public:
-  // Return the order of the polynomial on the curved boudnary
+  /// Return the order of the polynomial on the curved boudnary
   inline unsigned boundary_order() const {return BOUNDARY_ORDER;}
   
-  // Return the order of the full basis on the basic triangle
+  /// Return the order of the full basis on the basic triangle
   inline unsigned basic_basis_order() const {return BOUNDARY_ORDER + 4;}
 
-  // Return the number of basis functions on the physical triangle
+  /// Return the number of basis functions on the physical triangle
   inline unsigned n_basic_basis_functions() const 
    {return (BOUNDARY_ORDER + 5)*(BOUNDARY_ORDER + 6) / 2;}
 
-  // Return the number of basis functions on the physical triangle
+  /// Return the number of basis functions on the physical triangle
   inline unsigned n_basis_functions() const;
 
-  // Return the number of basis functions on the physical triangle
+  /// Return the number of basis functions on the physical triangle
   inline unsigned n_internal_dofs() const {return n_basis_functions()-18;}
 
-  // Return the number of linearly dependent midside basic nodes (not including 
-  // Argyris dofs that are also eliminated). Each has two dofs - a normal 
-  // and a functional dof.
+  /// Return the number of linearly dependent midside basic nodes (not including 
+  /// Argyris dofs that are also eliminated). Each has two dofs - a normal 
+  /// and a functional dof.
   inline unsigned n_basic_midside_nodes() const 
    {return (n_basic_basis_functions() - n_internal_dofs() - 21)/2;}
 
@@ -256,159 +261,203 @@ protected:
  // These Vectors are used repeatedly in the construction of the shape functions
  // So are inlined.
 
- // Components of the Two Tangent vectors at node 0 and overloaded Vector
- // version  (labelling Ai i in {1,2} anticlockwise)
+ /// Components of the first of the two tangent vectors at node 0 Vector
+ /// version  (labelling Ai i in {1,2} anticlockwise)
  inline double A1(const unsigned& i) const {return vertices[2][i]-vertices[0][i];}
+
+ /// Vector version of first of the two tangent vectors at node 0 Vector
+ /// version  (labelling Ai i in {1,2} anticlockwise)
  inline Vector<double> A1() const
  {Vector<double> v(2,0.0); v[0]=A1(0); v[1]=A1(1); return v;}
+
+ /// void version filling in the first of the two tangent vectors at node 0 Vector
+ /// version  (labelling Ai i in {1,2} anticlockwise)
  inline void A1(Vector<double>& v) const
   {for(unsigned i=0;i<2;++i){v[i]=vertices[2][i]-vertices[0][i];}}
 
+ /// Components of the second of the two tangent vectors at node 0 Vector
+ /// version  (labelling Ai i in {1,2} anticlockwise)
  inline double A2(const unsigned& i) const 
   {Vector<double> dchi(2,0.0); d_chi(s_ubar,dchi); return (s_obar - s_ubar)*dchi[i];}
+
+ /// Vector version of second of the two tangent vectors at node 0 Vector
+ /// version  (labelling Ai i in {1,2} anticlockwise)
  inline Vector<double> A2() const
   {Vector<double> v(2,0.0); v[0]=A2(0); v[1]=A2(1); return v;}
+
+ /// void version filling in the second of the two tangent vectors at node 0 
+ /// Vector version  (labelling Ai i in {1,2} anticlockwise)
  inline void A2(Vector<double>& v) const 
    {d_chi(s_ubar,v); v[0]*=(s_obar - s_ubar); v[1]*=(s_obar - s_ubar); }
 
- // Components of the Two Tangent vectors at node 1 and overloaded vector
- // version (labelling Ai i in {1,2} anticlockwise)
+ /// Components of the first tangent vector at node 1 and (labelling Bi i 
+ /// in {1,2} anticlockwise)
  inline double B1(const unsigned& i) const 
   {Vector<double> dchi(2,0.0); d_chi(s_obar,dchi); return -(s_obar - s_ubar)*dchi[i];}
+
+ /// First tangent vector at node 1 and (labelling Bi i in {1,2} 
+ /// anticlockwise)
  inline Vector<double> B1() const
  {Vector<double> v(2,0.0); v[0]=B1(0); v[1]=B1(1); return v;}
+
+ /// Fill in first tangent vector at node 1 and (labelling Bi i in {1,2} 
+ /// anticlockwise)
  inline void B1(Vector<double>& v) const
    {d_chi(s_obar,v); v[0]*=-(s_obar - s_ubar); v[1]*=-(s_obar - s_ubar); }
 
+ /// Components of the second tangent vector at node 1 and (labelling Bi i 
+ /// in {1,2} anticlockwise)
  inline double B2(const unsigned& i) const {return  (vertices[2][i]-vertices[1][i]);}
+
+ /// Second tangent vector at node 1 and (labelling Bi i in {1,2} 
+ /// anticlockwise)
  Vector<double> B2() const
    {Vector<double> v(2,0.0); v[0]=B2(0); v[1]=B2(1); return v;}
+
+ /// Fill in second tangent vector at node 1 and (labelling Bi i in {1,2} 
+ /// anticlockwise)
  inline void B2(Vector<double>& v) const 
   {for(unsigned i=0;i<2;++i){v[i]=vertices[2][i]-vertices[1][i];}}
 
- // The vectors of d2_chi defined at node 0 and node 1 respectively 
+ /// The vectors of d2_chi defined at node 0 and node 1 respectively 
  inline void D1(Vector<double>& v) const
    {d2_chi(s_ubar,v); v[0]*=pow(s_obar - s_ubar,2); v[1]*=pow(s_obar - s_ubar,2);}
 
- // Components of the Two Tangent vectors at node 1 and overloaded vector
- // version (labelling Ai i in {1,2} anticlockwise)
+ /// Components of the Two Tangent vectors at node 1 and overloaded vector
+ /// version (labelling Ai i in {1,2} anticlockwise)
  inline void D2(Vector<double>& v) const 
    {d2_chi(s_obar,v); v[0]*=pow(s_obar - s_ubar,2); v[1]*=pow(s_obar - s_ubar,2);}
 
- // Define a new enumerated type that represents the three potential points along
- //  a side of the triangle
-
+ /// Define a new enumerated type that represents the three potential points along
+ ///  a side of the triangle
  enum s_basic_node {one_quarter=0, one_half=1, three_quarters=2};
 
- // These constants are needed in the construction of the Mij matrix to
- // transform onto the basic element
+ /// These constants are needed in the construction of the Mij matrix to
+ /// transform onto the basic element
 
- // (Signed) area of a parallelogram (or alternatively z component of cross
- // product of two vectors on x-y plane ). Takes two "Vector" component
- // function pointers.
+ /// (Signed) area of a parallelogram (or alternatively z component of cross
+ /// product of two vectors on x-y plane ). Takes two Vectors as argument.
  inline double parallelogram_area(const Vector<double>& v0, const Vector<double>&  v1)
    const { return v0[0] * v1[1]- v0[1] * v1[0]; }
 
+ /// (Signed) area of a parallelogram (or alternatively z component of cross
+ /// product of two vectors on x-y plane ). Takes four compenents as arguments.
  inline double parallelogram_area(const double& v0x,const double& v0y,
    const double&  v1x, const double& v1y)
    const { return v0x * v1y- v0y * v1x; }
 
  // Define some useful constants
- // Components of a0 - a1 in directions A1 and A2
+ /// Components of a0 - a1 in direction A1
  inline double a_tilde_1() const
   {Vector<double> b2(2,0),a2(2,0),a1(2,0); B2(b2); A2(a2); A1(a1);
    return parallelogram_area(b2,a2) / parallelogram_area(a1,a2) - 1;}
+
+ /// Components of a0 - a1 in direction A2
  inline double a_tilde_2() const
   {Vector<double> b2(2,0),a2(2,0),a1(2,0); B2(b2); A2(a2); A1(a1);
   return parallelogram_area(a1,b2) / parallelogram_area(a1,a2);}
 
- // Components of -B1 in directions A1 and A2
+ /// Components of -B1 in directions A1 
  inline double a_tildetilde_1() const
   {Vector<double> a2(2,0),b1(2,0),a1(2,0); A2(a2); A1(a1); B1(b1);
    return -parallelogram_area(b1,a2) / parallelogram_area(a1,a2);}
+
+ /// Components of -B1 in directions A2
  inline double a_tildetilde_2() const
   {Vector<double> a2(2,0),b1(2,0),a1(2,0); A2(a2); A1(a1); B1(b1);
   return -parallelogram_area(a1,b1) / parallelogram_area(a1,a2);}
 
- // Components of D1 in directions A1 and A2
+ /// Components of D1 in directions A1 
  inline double a_utilde_1() const
   {Vector<double> a2(2,0),d1(2,0),a1(2,0); A2(a2); A1(a1); D1(d1);
    return parallelogram_area(d1,a2) / parallelogram_area(a1,a2);}
+
+ /// Components of D1 in directions A2 
  inline double a_utilde_2() const
   {Vector<double> a2(2,0),d1(2,0),a1(2,0); A2(a2); A1(a1); D1(d1);
   return parallelogram_area(a1,d1) / parallelogram_area(a1,a2);}
 
- // Components of a1 - a2 in directions B1 and B2
+ /// Components of a1 - a2 in directions B1
  inline double b_tilde_1() const
   {Vector<double> b2(2,0),b1(2,0),a1(2,0); B2(b2); A1(a1); B1(b1);
   return parallelogram_area(a1,b2) / parallelogram_area(b1,b2);}
+
+ /// Components of a1 - a2 in directions B2
  inline double b_tilde_2() const
   {Vector<double> b2(2,0),b1(2,0),a1(2,0); B2(b2); A1(a1); B1(b1);
   return parallelogram_area(b1,a1) / parallelogram_area(b1,b2) - 1;}
 
- // Components of A2 in directions B1 and B2
+ /// Components of A2 in directions B1 
  inline double b_tildetilde_1() const
   {Vector<double> b2(2,0),b1(2,0),a2(2,0); A2(a2); B2(b2); B1(b1);
   return parallelogram_area(a2,b2) / parallelogram_area(b1,b2);}
+
+ /// Components of A2 in directions B2 
  inline double b_tildetilde_2() const
   {Vector<double> b2(2,0),b1(2,0),a2(2,0); A2(a2); B2(b2); B1(b1);
   return parallelogram_area(b1,a2) / parallelogram_area(b1,b2);}
 
- // Components of D2 in directions B1 and B2
+ /// Components of D2 in directions B1 
  inline double b_utilde_1() const
   {Vector<double> b2(2,0),b1(2,0),d2(2,0); D2(d2); B2(b2); B1(b1);
   return parallelogram_area(d2,b2) / parallelogram_area(b1,b2);}
+
+ /// Components of D2 in directions B2 
  inline double b_utilde_2() const
   {Vector<double> b2(2,0),b1(2,0),d2(2,0); D2(d2); B2(b2); B1(b1);
   return parallelogram_area(b1,d2) / parallelogram_area(b1,b2);}
 
- // Components of A2 in directions B1 and B2
+ /// Components of A2 in directions C1
  inline double c_tilde_1() const
   {Vector<double> b2(2,0),a1(2,0),a2(2,0); A2(a2); A1(a1); B2(b2);
   return -parallelogram_area(a1,a2) / parallelogram_area(a1,b2);}
+
+ /// Components of A2 in directions C2 
  inline double c_tilde_2() const
   {Vector<double> b2(2,0),a1(2,0),a2(2,0); A2(a2); A1(a1); B2(b2);
   return -parallelogram_area(a2,b2) /  parallelogram_area(a1,b2);}
 
- // Components of B1 in directions B1 and B2
+ /// Components of B1 in directions C1
  inline double c_tildetilde_1() const
   {Vector<double> b2(2,0),a1(2,0),b1(2,0); B1(b1); A1(a1); B2(b2);
   return -parallelogram_area(a1,b1) / parallelogram_area(a1,b2);}
+
+ /// Components of B1 in directions C2
  inline double c_tildetilde_2() const
   {Vector<double> b2(2,0),a1(2,0),b1(2,0); B1(b1); A1(a1); B2(b2);
   return -parallelogram_area(b1,b2) / parallelogram_area(a1,b2);}
 
- // We need to get the altitude vectors, the vector parallel to the inner
- // normal that points from the point ci on the ith side to the node ai.
- // (Signed) altitude 1
+ /// We need to get the altitude vectors, the vector parallel to the inner
+ /// normal that points from the point ci on the ith side to the node ai.
+ /// (Signed) altitude 1
  inline double altitude_1() const {
   return -parallelogram_area(A1(0),A1(1),B2(0),B2(1)) / 
    sqrt(B2(0)*B2(0)+B2(1)*B2(1));}
 
- // (Signed) altitude 2
+ /// (Signed) altitude 2
  inline double altitude_2()const{
   return -parallelogram_area(A1(0),A1(1),B2(0),B2(1)) / 
    sqrt(A1(0)*A1(0)+A1(1)*A1(1));}
 
- // Altitude vector 1 (i.e normal vector with length of altitude) component i
- //  h1 = (A1 . B2/|B2|) B2/|B2| - A1
+ /// Altitude vector 1 (i.e normal vector with length of altitude) component i
+ ///  h1 = (A1 . B2/|B2|) B2/|B2| - A1
  inline double altitude_vector_1(unsigned i) const{
    double B2B2 (B2(0)*B2(0)+B2(1)*B2(1)), B2A1 (B2(0)*A1(0)+B2(1)*A1(1));          
   return  -A1(i) + B2A1/B2B2 * B2(i);}
 
- // Altitude vector 2 (i.e normal vector with length of altitude) component i
- //  h2 = (B2 . A1/|A1|) A1/|A1| - B2
+ /// Altitude vector 2 (i.e normal vector with length of altitude) component i
+ ///  h2 = (B2 . A1/|A1|) A1/|A1| - B2
  inline double altitude_vector_2(unsigned i) const{
    double B2A1 (B2(0)*A1(0)+B2(1)*A1(1)), A1A1 (A1(0)*A1(0)+A1(1)*A1(1));
   return -B2(i) + B2A1/A1A1 * A1(i);}
 
- // Eccentricity Parameters
- // eta_1 = 1 -  2 A1.B2 / B2.B2
+ /// Eccentricity Parameters
+ /// eta_1 = 1 -  2 A1.B2 / B2.B2
  inline double eta_1() const{
    double B2B2 (B2(0)*B2(0)+B2(1)*B2(1)), B2A1 (B2(0)*A1(0)+B2(1)*A1(1));
   return  1-2*B2A1/B2B2;}
 
- // eta_2 =-1 +  2 A1.B2 / A1.A1
+ /// eta_2 =-1 +  2 A1.B2 / A1.A1
  inline double eta_2() const{
    double A1B2 (A1(0)*B2(0)+A1(1)*B2(1)), A1A1 (A1(0)*A1(0)+A1(1)*A1(1));
    return 2*A1B2/A1A1-1;}
@@ -416,16 +465,28 @@ protected:
  // We need 1d shape functions for the trace of the function and its' normal
  // derivative
 
- // Get 5th order, 1D hermite shape functions
- // Dofs: w(0) w(1) w'(0) w'(1) w''(0) w''(1)
+ /// Get 5th order, 1D hermite shape functions
+ /// Dofs: w(0) w(1) w'(0) w'(1) w''(0) w''(1)
  void  hermite_shape_1d_5(const double& s, Shape& psi) const;
+
+ /// Get 5th order, 1D hermite shape functions at basic nodes
+ /// Dofs: w(0) w(1) w'(0) w'(1) w''(0) w''(1)
  void  hermite_shape_1d_5(const s_basic_node& s, Shape& psi) const;
+
+ /// The local derivative of 5th order, 1D hermite shape functions
+ /// Dofs: w(0) w(1) w'(0) w'(1) w''(0) w''(1)
  void  d_hermite_shape_1d_5(const double& s, DShape& dpsi) const;
+
+ /// The local derivative of 5th order, 1D hermite shape functions
+ /// Dofs: w(0) w(1) w'(0) w'(1) w''(0) w''(1) at basic_node
  void  d_hermite_shape_1d_5(const s_basic_node& s, DShape& dpsi) const;
 
- // Get 3rd order, 1D hermite shape functions
- // Dofs: w(0) w(1) w'(0) w'(1)
+ /// Get 3rd order, 1D hermite shape functions
+ /// Dofs: w(0) w(1) w'(0) w'(1)
  void  hermite_shape_1d_3(const double& s, Shape& psi) const;
+
+ /// Get 3rd order, 1D hermite shape functions
+ /// Dofs: w(0) w(1) w'(0) w'(1) at basic node
  void  hermite_shape_1d_3(const s_basic_node& s, Shape& psi) const;
 
  // Now define the w trace column vectors fi i in {1,2,3}
@@ -433,79 +494,116 @@ protected:
  // give the trace along boundary i. They are effectively a set of shape
  // functions for the trace but padded with zeros so they can be used in matrix
  // multiplication.
+ /// Padded shape functions for trace on side 1 
  Vector<double> f_1(const double& s0) const;
+ /// Padded shape functions for trace on side 1  at basic nodes 
  Vector<double> f_1(const s_basic_node& s0) const;
+ /// Local derivative of padded shape functions for trace on side 1 
  Vector<double> df_1_ds(const double& s0) const;
+ /// Local derivative of padded shape functions for trace on side 1  at basic 
+ /// nodes
  Vector<double> df_1_ds(const s_basic_node& s0) const;
 
+ /// Padded shape functions for trace on side 2 
  Vector<double> f_2(const double& s1) const;
+ /// Padded shape functions for trace on side 2  at basic nodes 
  Vector<double> f_2(const s_basic_node& s1) const;
+ /// Local derivative of padded shape functions for trace on side 2 
  Vector<double> df_2_ds(const double& s1) const;
+ /// Local derivative of padded shape functions for trace on side 2  at basic 
+ /// nodes
  Vector<double> df_2_ds(const s_basic_node& s1) const;
 
+ /// Padded shape functions for trace on (curved) side 3 
  Vector<double> f_3(const double& s0) const;
+ /// Padded shape functions for trace on (curved) side 3 at basic nodes 
  Vector<double> f_3(const s_basic_node& s0) const;
+ /// Local derivative of padded shape functions for trace on (curved) side 3 
  Vector<double> df_3_ds(const double& s0) const;
+ /// Local derivative of padded shape functions for trace on (curved) side 3  
+ /// at basic nodes
  Vector<double> df_3_ds(const s_basic_node& s0) const;
 
  // Now define the  w,n trace column vectors gi i in {1,2,3}
+ /// Padded shape functions for normal derivative trace on side 1 
  Vector<double> g_1(const double& s0) const;
+ /// Padded shape functions for normal derivative trace on side 1 
  Vector<double> g_1(const s_basic_node& s0) const;
 
+ /// Padded shape functions for normal derivative trace on side 2 
  Vector<double> g_2(const double& s1) const;
+ /// Padded shape functions for normal derivative trace on side 2 
  Vector<double> g_2(const s_basic_node& s1) const;
 
+ /// Padded shape functions for normal derivative trace on (curved) side 3 
  Vector<double> g_3(const double& s0) const;
+ /// Padded shape functions for normal derivative trace on (curved) side 3 
  Vector<double> g_3(const s_basic_node& s0) const;
 
- // This matrix transforms the global dofs to the local dofs
+ /// Fill in matrix that transforms the global dofs to the local dofs
  void local_to_global_matrix(DenseMatrix<double>& l2g) const;
 
- // This matrix transforms between the basic dofs (36) and the local dofs (21)
+ /// Fill in  matrix that transforms between the basic dofs (36) and the local 
+ /// dofs (21)
  void basic_to_local_matrix(DenseMatrix<double>& b2l) const;
 
- // The submatrices used to construct the full local to basic matrix
+ /// Fill in submatrix used to construct the full local to basic matrix
  void  basic_to_local_submatrix_1 (DenseMatrix<double>& M1) const;
+ /// Fill in submatrix used to construct the full local to basic matrix
  void  basic_to_local_submatrix_2 (DenseMatrix<double>& M2) const;
+ /// Fill in submatrix used to construct the full local to basic matrix
  void  basic_to_local_submatrix_3 (DenseMatrix<double>& M3) const;
+ /// Fill in submatrix used to construct the full local to basic matrix
  void  basic_to_local_submatrix_4 (DenseMatrix<double>& M4) const;
+ /// Fill in submatrix used to construct the full local to basic matrix
  void  basic_to_local_submatrix_5 (DenseMatrix<double>& M5) const;
+ /// Fill in submatrix used to construct the full local to basic matrix
  void  basic_to_local_submatrix_6 (DenseMatrix<double>& M6) const;
+ /// Fill in submatrix used to construct the full local to basic matrix
  void  basic_to_local_submatrix_7 (DenseMatrix<double>& M7) const;
 
- // This matrix transforms from the 36(55) basis monomials of p7(9) to the 
- // 36(55) shape functions on the basic triangle
- // It was derived in mathematica and is extremely large.
+ /// Fill in the matrix that transforms from the 36(55) basis monomials of p7(9) 
+ /// to the 36(55) shape functions on the basic triangle
+ /// It was derived in mathematica and is extremely large.
  void monomial_to_basic_matrix(DenseMatrix<double>& m) const;
 
+ /// Fill in the inverse matrix that transforms from the 36(55) basis monomials 
+ /// of p7(9) (may be accurate/similar time to invert on the fly)
+ /// to the 36(55) shape functions on the basic triangle
+ /// It was derived in mathematica and is extremely large.
  void inverse_monomial_to_basic_matrix(DenseDoubleMatrix& m) const;
 
- // Get full basis for a generic (BOUNDARY_ORDER+4)th order bivariate polynomial
- // i.e 36 basis monomials for generic p7 polynomial
- // i.e 55 basis monomials for generic p9 polynomial
+ /// Get full basis for a generic (BOUNDARY_ORDER+4)th order bivariate polynomial
+ /// i.e 36 basis monomials for generic p7 polynomial
+ /// i.e 55 basis monomials for generic p9 polynomial
  void  full_basis_monomials(const Vector<double>& s, Shape& pn) const;
 
+ /// Get full basis for the basic element
  void  full_basic_polynomials(const Vector<double>& s, Shape& pn) const;
 
+ /// Get first derivatives of full basis for the basic element
  void  dfull_basic_polynomials(const Vector<double>& s, DShape& dpn) const;
 
+ /// Get second derivatives of full basis for the basic element
  void  d2full_basic_polynomials(const Vector<double>& s, DShape& d2pn) const;
- // Get first derivatives of the 36(55) basis monomials for generic p7(9) 
- // polynomial
+
+ /// Get first derivatives of the 36(55) basis monomials for generic p7(9) 
+ /// polynomial
  void dfull_basis_monomials(const Vector<double>& s, DShape& dp7) const;
 
- // Get second derivatives of the 36(55) basis monomials for generic p7(9)
- // polynomial
+ /// Get second derivatives of the 36(55) basis monomials for generic p7(9)
+ /// polynomial
  void d2full_basis_monomials(const Vector<double>& s, DShape& d2p7) const;
 
  /// Get the basis functions at basic coordinate s
  void shape_basic(const Vector<double>& s, Shape& psi, Shape& bpsi) const;
 
 public:
+
  /// Get the basis functions at local coordinate s
  void shape(const Vector<double>& s, Shape& psi, Shape& bpsi) const
   {
-   // Permute the local coordinate 
+   /// Permute the local coordinate 
    Vector<double> s_basic(s); permute_shape(s_basic); 
    shape_basic(s_basic, psi, bpsi);
   }
@@ -536,6 +634,7 @@ public:
     }
   }
 protected:
+
  ///  Get the local first derivatives of the basis functions
  void d_shape_ds(const Vector<double>& s, Shape& psi, Shape& bpsi, DShape& dpsi,
    DShape& dbpsi) const; // PRIVATE
@@ -557,16 +656,20 @@ protected:
  static const double Internal_dof_knots[(BOUNDARY_ORDER == 3 ? 3 : 10)][2];
 
 public:
- ///  Get the local first derivatives of the basis functions
+ /// Get the Eulerian first derivatives of the basis functions
  double d_shape_dx(const Vector<double>& s, Shape& psi, Shape& bpsi, DShape& dpsi,
    DShape& dbpsi) const;
 
+ /// Get the Eulerian second derivatives of the basis functions
  double d2_shape_dx2(const Vector<double>& s, Shape& psi, Shape& bpsi, DShape& dpsi
    , DShape& dbpsi, DShape& d2psi, DShape& d2bpsi) const;
 
+ /// Get the Eulerian second derivatives of the basis functions, returning the
+ /// association matrix used to assemble the basis. 
  double d2_shape_dx2(const Vector<double>& s, Shape& psi, Shape& bpsi, DShape& dpsi
    , DShape& dbpsi, DShape& d2psi, DShape& d2bpsi, const DenseMatrix<double>& m) const;
 
+ /// Return the Eulerian coordinate of the ith internal dof.
  void get_internal_dofs_location(const unsigned& idof,Vector<double>& s_permute) const
   {
    // Get the shape 
@@ -580,15 +683,15 @@ public:
   }
 };
 
-// Return the number of basis functions on the physical triangle
+/// Return the number of basis functions on the physical triangle
 template <>
 inline unsigned BernadouElementBasis<3>::n_basis_functions() const {return 21;}
 
-// Return the number of basis functions on the physical triangle
+/// Return the number of basis functions on the physical triangle
 template <>
 inline unsigned BernadouElementBasis<5>::n_basis_functions() const {return 28;}
 
-// Get the edge permutation
+/// Get the edge permutation
 template <unsigned BOUNDARY_ORDER>
 inline void BernadouElementBasis<BOUNDARY_ORDER>::nodal_index_shift(unsigned& 
  index_shift) const
@@ -611,7 +714,7 @@ OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
    { index_shift = 0; } 
 }
 
-// Get the edge permutation
+/// Permute shape based on which edge is curved 
 template <unsigned BOUNDARY_ORDER>
 inline void BernadouElementBasis<BOUNDARY_ORDER>::permute_shape(Vector<double>& s) const
 {
@@ -650,7 +753,7 @@ OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
    } 
 }
 
-// Get the edge permutation
+/// Get the jacobian associated with the edge permutation
 template <unsigned BOUNDARY_ORDER>
 inline void BernadouElementBasis<BOUNDARY_ORDER>::get_jacobian_of_permute(DenseMatrix<double>& jac) const
 {
@@ -691,8 +794,18 @@ OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
    } 
 }
 
-// Inline functions
-// self check function
+/// Inline functions
+/// Self check function: 
+/// 1. Checks for inverted elements.
+/// 2. Checks that the specified parametric edge agrees at s_ubar and s_obar 
+///    with the vertices
+/// 3. Checks that the curved edge is not parallel to the adjacent side
+/// 4. Checks that the side lengths do not become close to zero.
+/// 5. Check that the area of the paralellogram traced by the two non curved 
+///    edges and the tangent vectors does not have zero area
+/// 6. Check that the element is not collapsed onto a line.
+/// 7. Extra paranoid check to see if ANY of the denominators needed in the 
+///    construction are zero: these cases should be caught by previous checks.
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::self_check() const
 {
