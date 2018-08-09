@@ -78,14 +78,14 @@ public:
   Vector<double>& norm);
 
  /// \short (pure virtual) interface to fixing the out of plane displacement
- // NB do we need this?
  virtual void fix_out_of_plane_displacement_dof(const unsigned& dof_number, 
 const unsigned& boundary_number, const PressureFctPt& w)=0;
+ // NB do we need this?
 
  /// \short (pure virtual) interface to fixing the in plane displacement
- // NB do we need this?
  virtual void fix_in_plane_displacement_dof(const unsigned& dof_number,
 const unsigned& boundary_number, const PressureFctPt& u)=0;
+ // NB do we need this?
 
  /// \short (pure virtual) function that precomputes association matrix between
  /// the basis functions of the basic element and the physical element.
@@ -113,6 +113,7 @@ const unsigned& boundary_number, const PressureFctPt& u)=0;
  /// Pointer to eta
  const double* &eta_pt() {return Eta_pt;}
 
+ /// Pure virtual function to pin all deflection dofs
  virtual void pin_all_deflection_dofs() const=0;
 
  /// Constructor (must initialise the Pressure_fct_pt to null)
@@ -137,8 +138,6 @@ const unsigned& boundary_number, const PressureFctPt& u)=0;
    BrokenCopy::broken_assign("FoepplVonKarmanEquations");
   }
 
-
- 
  /// \short Return the index at which the unknown value
  /// is stored.
  /// In derived multi-physics elements, this function should be overloaded
@@ -502,7 +501,9 @@ output_stress_flag=false) const
 //  }
 
 protected:
+ /// Pure virtual interface to the basis for the in--plane displacement 
  virtual void shape_u(const Vector<double> &s,  Shape &psi) const=0;
+
  /// \short Shape/test functions and derivs w.r.t. to global coords at
  /// local coord. s; return  Jacobian of mapping
  virtual double d2shape_and_d2test_eulerian_foeppl_von_karman(const Vector<double> &s,

@@ -43,6 +43,8 @@
 namespace oomph {
 namespace MyC1CurvedElements {
 
+/// The monomial to basic matrix for elements with 3rd order boundary 
+/// interpolation: the basic element has 36 values resulting in a 36x36 matrix
 template <>
 void BernadouElementBasis<3>::monomial_to_basic_matrix(DenseMatrix<double>& A) const
 {
@@ -548,6 +550,8 @@ void BernadouElementBasis<3>::monomial_to_basic_matrix(DenseMatrix<double>& A) c
  A(35,23)=3072.;
 }
 
+/// The monomial to basic matrix for elements with 5th order boundary 
+/// interpolation: the basic element has 55 values, resulting in a 55x55 matrix
  template <>
  void BernadouElementBasis<5>::monomial_to_basic_matrix(DenseMatrix<double>& b2l) const
  {
@@ -1855,15 +1859,23 @@ void BernadouElementBasis<3>::monomial_to_basic_matrix(DenseMatrix<double>& A) c
    b2l (54, 42) = 3645 ;
  }
 
+/// The inverse monomial to basic matrix for elements with 3rd order boundary 
+/// interpolation: the basic element has 36 values, resulting in a 36x36 matrix
+/// BROKEN FUNCTION - not implemented for 3rd order boundaries
  template <>
  void BernadouElementBasis<3>::inverse_monomial_to_basic_matrix(DenseDoubleMatrix& ib2l) const
  {
+   throw OomphLibError("Not implemented for 3rd order boundaries!",
+                       OOMPH_EXCEPTION_LOCATION,
+                       OOMPH_CURRENT_FUNCTION);
    // temporary HERE
    #ifdef PARANOID
    self_check();
    #endif
  }
 
+/// The inverse monomial to basic matrix for elements with 5th order boundary 
+/// interpolation: the basic element has 55 values, resulting in a 55x55 matrix
 template <>
  void BernadouElementBasis<5>::inverse_monomial_to_basic_matrix(DenseDoubleMatrix& ib2l) const
  {

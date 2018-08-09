@@ -43,13 +43,13 @@ namespace MyC1CurvedElements {
 /// \short enum to enumerate the possible edges that could be curved
 enum Edge {none=-1,zero=0,one=1,two=2};
 
-/// Now for the BernadouElementBasis class
+/// The BernadouElementBasis class.
 /// These are based on the curved C1 elements of Bernadou and Boisserie 1994 but
 /// adapted for use with the Bell elements rather than Argyris.
 /// The structure of these elements is as follows:
 /// Fk maps a point on the reference element to a point on the curved element. It
 /// is determined by the vertex nodal positions (ai) and the prescribed curved
-/// boundary \chi(s).
+/// boundary chi(s).
 /// 
 /* The Structure                                                              */
 /*      @                                                                     */
@@ -69,11 +69,11 @@ enum Edge {none=-1,zero=0,one=1,two=2};
 /* where tij are the two tangents at node ai and tjk are the two tangents opp-*/
 /* osite ai. ai are nodes, bi are midside points and di are mid-midside points*/
 /* ei are internal dofs at points Fk(ei_hat) where ei hat are at (1/4,1/4)    */
-/* (1/4,1/2) and (1/2,1/4)                                                    */
+/* (1/4,1/2) and (1/2,1/4).                                                    */
 /// We first map the dofs from global to local dofs such that the derivatives are
 /// now all with respect to local tangents.
 /// This is just done using local rotations of the derivative dofs using a 24x24
-/// matrix that we refer to as d_matrix
+/// matrix that we refer to as d_matrix.
 /// We then map the 21 local dofs onto the 36 basic 'dofs': which aren't really
 /// dofs. The mapping is curved so a line on the basic element will map to a
 /// curve on the physical space. For this reason we need a higher order
@@ -98,9 +98,10 @@ public:
 
   /// \short Shorthand for a vector of vectors containining the vertices
   typedef Vector<Vector<double> > VertexList;
-  /// Constructor
+  /// Default Constructor
   BernadouElementBasis(){}
 
+  /// Constructor that takes vertices and start and end parts as arguments.
   BernadouElementBasis(const VertexList& verts, const double& su, const double&so)
     : vertices(verts), s_ubar(su), s_obar(so), Curved_edge(none)
    {
@@ -158,7 +159,7 @@ public:
   /// Access by reference which edge is curved
   inline Edge& get_edge(){return Curved_edge;}
 
-  /// Define the curved boundary functions
+  // Define the curved boundary functions.
   /// The parametric boundary chi(s)
   inline void chi (const double& s1, Vector<double>& chi) const
    {Parametric_curve_pt->position(s1,chi);}
@@ -170,22 +171,23 @@ public:
   /// The approximated (3rd order) polynomial
   void psi_h  (const double& s1, Vector<double>& psi_h) const;
 
-  /// The derivative of the parametric representation wrt. parametric coordinate
-  /// s : chi'(s)
+  /// \short The derivative of the parametric representation wrt. parametric 
+  // coordinate s : chi'(s)
   inline void d_chi(const double& s1, Vector<double>& d_chi) const
    {Parametric_curve_pt->dposition(s1,d_chi);}
 
-  /// The 2nd derivative of the parametric representation wrt. parametric 
+  /// \short The 2nd derivative of the parametric representation wrt. parametric 
   /// coordinate, s : chi'''(s)
   inline void d2_chi(const double& s1, Vector<double>& d_chi) const
    {Parametric_curve_pt->d2position(s1,d_chi);}
 
-  /// The derivative of the parametric function wrt. local coordinate s1 in terms 
-  /// of the local coordinate s1
+  /// \short The derivative of the parametric function wrt. local coordinate s1 
+  ///  in terms of the local coordinate s1
   void d_psi  (const double& s1, Vector<double>& d_psi) const;
   
   /// Fill in the full association matrix 
   void fill_in_full_association_matrix(DenseMatrix<double>& conversion_matrix);
+
 protected:
   /// The mapping F_k - a polynomial degree 3 PRIVATE
   void f_k (const Vector<double>& s, Vector<double>& fk) const;
@@ -193,12 +195,12 @@ protected:
   /// The basic Jacobian PRIVATE
   void get_basic_jacobian(const Vector<double> s, DenseMatrix<double>& jac)const;
 
-  /// The Hessian of the global coordinate (of the vector mapping) - like a second
-  /// order Jacobian.
-  ///        d^2 x_i
-  /// or:   ----------    (rank 3) with x the global coordinate and s the local.
-  ///       d s_i ds_j
-  /// PRIVATE
+  /// \short The Hessian of the global coordinate (of the vector mapping) - like 
+  /// a second order Jacobian.
+  /*        d^2 x_i
+      or:   ----------    (rank 3) with x the global coordinate and s the local.
+            d s_i ds_j                                                        */
+  // PRIVATE
   void get_basic_hessian(const Vector<double>& s,
     RankThreeTensor<double>& hess) const;
 
@@ -251,9 +253,9 @@ public:
   /// Return the number of basis functions on the physical triangle
   inline unsigned n_internal_dofs() const {return n_basis_functions()-18;}
 
-  /// Return the number of linearly dependent midside basic nodes (not including 
-  /// Argyris dofs that are also eliminated). Each has two dofs - a normal 
-  /// and a functional dof.
+  /// \short Return the number of linearly dependent midside basic nodes (not 
+  /// including Argyris dofs that are also eliminated). Each has two dofs - a 
+  /// normal and a functional dof.
   inline unsigned n_basic_midside_nodes() const 
    {return (n_basic_basis_functions() - n_internal_dofs() - 21)/2;}
 
@@ -261,87 +263,87 @@ protected:
  // These Vectors are used repeatedly in the construction of the shape functions
  // So are inlined.
 
- /// Components of the first of the two tangent vectors at node 0 Vector
+ /// \short Components of the first of the two tangent vectors at node 0 Vector
  /// version  (labelling Ai i in {1,2} anticlockwise)
  inline double A1(const unsigned& i) const {return vertices[2][i]-vertices[0][i];}
 
- /// Vector version of first of the two tangent vectors at node 0 Vector
+ /// \short Vector version of first of the two tangent vectors at node 0 Vector
  /// version  (labelling Ai i in {1,2} anticlockwise)
  inline Vector<double> A1() const
  {Vector<double> v(2,0.0); v[0]=A1(0); v[1]=A1(1); return v;}
 
- /// void version filling in the first of the two tangent vectors at node 0 Vector
- /// version  (labelling Ai i in {1,2} anticlockwise)
+ /// \short void version filling in the first of the two tangent vectors at node
+ ///  0 Vector version  (labelling Ai i in {1,2} anticlockwise)
  inline void A1(Vector<double>& v) const
   {for(unsigned i=0;i<2;++i){v[i]=vertices[2][i]-vertices[0][i];}}
 
- /// Components of the second of the two tangent vectors at node 0 Vector
+ /// \short Components of the second of the two tangent vectors at node 0 Vector
  /// version  (labelling Ai i in {1,2} anticlockwise)
  inline double A2(const unsigned& i) const 
   {Vector<double> dchi(2,0.0); d_chi(s_ubar,dchi); return (s_obar - s_ubar)*dchi[i];}
 
- /// Vector version of second of the two tangent vectors at node 0 Vector
- /// version  (labelling Ai i in {1,2} anticlockwise)
+ /// \short  Vector version of second of the two tangent vectors at node 0 
+ /// Vector version  (labelling Ai i in {1,2} anticlockwise)
  inline Vector<double> A2() const
   {Vector<double> v(2,0.0); v[0]=A2(0); v[1]=A2(1); return v;}
 
- /// void version filling in the second of the two tangent vectors at node 0 
- /// Vector version  (labelling Ai i in {1,2} anticlockwise)
+ /// \short void version filling in the second of the two tangent vectors at 
+ /// node 0 - vector version  (labelling Ai i in {1,2} anticlockwise)
  inline void A2(Vector<double>& v) const 
    {d_chi(s_ubar,v); v[0]*=(s_obar - s_ubar); v[1]*=(s_obar - s_ubar); }
 
- /// Components of the first tangent vector at node 1 and (labelling Bi i 
+ /// \short Components of the first tangent vector at node 1 and (labelling Bi i 
  /// in {1,2} anticlockwise)
  inline double B1(const unsigned& i) const 
   {Vector<double> dchi(2,0.0); d_chi(s_obar,dchi); return -(s_obar - s_ubar)*dchi[i];}
 
- /// First tangent vector at node 1 and (labelling Bi i in {1,2} 
+ /// \short First tangent vector at node 1 and (labelling Bi i in {1,2} 
  /// anticlockwise)
  inline Vector<double> B1() const
  {Vector<double> v(2,0.0); v[0]=B1(0); v[1]=B1(1); return v;}
 
- /// Fill in first tangent vector at node 1 and (labelling Bi i in {1,2} 
+ /// \short Fill in first tangent vector at node 1 and (labelling Bi i in {1,2} 
  /// anticlockwise)
  inline void B1(Vector<double>& v) const
    {d_chi(s_obar,v); v[0]*=-(s_obar - s_ubar); v[1]*=-(s_obar - s_ubar); }
 
- /// Components of the second tangent vector at node 1 and (labelling Bi i 
+ /// \short Components of the second tangent vector at node 1 and (labelling Bi i 
  /// in {1,2} anticlockwise)
  inline double B2(const unsigned& i) const {return  (vertices[2][i]-vertices[1][i]);}
 
- /// Second tangent vector at node 1 and (labelling Bi i in {1,2} 
+ /// \short Second tangent vector at node 1 and (labelling Bi i in {1,2} 
  /// anticlockwise)
  Vector<double> B2() const
    {Vector<double> v(2,0.0); v[0]=B2(0); v[1]=B2(1); return v;}
 
- /// Fill in second tangent vector at node 1 and (labelling Bi i in {1,2} 
+ /// \short Fill in second tangent vector at node 1 and (labelling Bi i in {1,2} 
  /// anticlockwise)
  inline void B2(Vector<double>& v) const 
   {for(unsigned i=0;i<2;++i){v[i]=vertices[2][i]-vertices[1][i];}}
 
- /// The vectors of d2_chi defined at node 0 and node 1 respectively 
+ /// The vectors of d2_chi defined at node 0
  inline void D1(Vector<double>& v) const
    {d2_chi(s_ubar,v); v[0]*=pow(s_obar - s_ubar,2); v[1]*=pow(s_obar - s_ubar,2);}
 
- /// Components of the Two Tangent vectors at node 1 and overloaded vector
- /// version (labelling Ai i in {1,2} anticlockwise)
+ /// The vectors of d2_chi defined at node 1
  inline void D2(Vector<double>& v) const 
    {d2_chi(s_obar,v); v[0]*=pow(s_obar - s_ubar,2); v[1]*=pow(s_obar - s_ubar,2);}
 
- /// Define a new enumerated type that represents the three potential points along
+ /// \short Enumerated type that represents the three potential points along
  ///  a side of the triangle
  enum s_basic_node {one_quarter=0, one_half=1, three_quarters=2};
 
  /// These constants are needed in the construction of the Mij matrix to
  /// transform onto the basic element
 
- /// (Signed) area of a parallelogram (or alternatively z component of cross
- /// product of two vectors on x-y plane ). Takes two Vectors as argument.
+ /// \short(Signed) area of a parallelogram (or alternatively z component of 
+ /// cross product of two vectors on x-y plane ). Takes two Vectors as argument.
  inline double parallelogram_area(const Vector<double>& v0, const Vector<double>&  v1)
    const { return v0[0] * v1[1]- v0[1] * v1[0]; }
 
- /// (Signed) area of a parallelogram (or alternatively z component of cross
- /// product of two vectors on x-y plane ). Takes four compenents as arguments.
+ /// \short (Signed) area of a parallelogram (or alternatively z component of 
+ /// cross product of two vectors on x-y plane ). Takes four compenents as 
+ //  arguments.
  inline double parallelogram_area(const double& v0x,const double& v0y,
    const double&  v1x, const double& v1y)
    const { return v0x * v1y- v0y * v1x; }
@@ -427,9 +429,9 @@ protected:
   {Vector<double> b2(2,0),a1(2,0),b1(2,0); B1(b1); A1(a1); B2(b2);
   return -parallelogram_area(b1,b2) / parallelogram_area(a1,b2);}
 
- /// We need to get the altitude vectors, the vector parallel to the inner
- /// normal that points from the point ci on the ith side to the node ai.
- /// (Signed) altitude 1
+ // The altitude vectors: the vector parallel to the inner
+ // normal that points from the point ci on the ith side to the node ai.
+ /// (Signed) altitude 1.
  inline double altitude_1() const {
   return -parallelogram_area(A1(0),A1(1),B2(0),B2(1)) / 
    sqrt(B2(0)*B2(0)+B2(1)*B2(1));}
@@ -439,24 +441,25 @@ protected:
   return -parallelogram_area(A1(0),A1(1),B2(0),B2(1)) / 
    sqrt(A1(0)*A1(0)+A1(1)*A1(1));}
 
- /// Altitude vector 1 (i.e normal vector with length of altitude) component i
- ///  h1 = (A1 . B2/|B2|) B2/|B2| - A1
+ /// \short Altitude vector 1 (i.e normal vector with length of altitude) 
+ ///  component i: h1 = (A1 . B2/|B2|) B2/|B2| - A1
  inline double altitude_vector_1(unsigned i) const{
    double B2B2 (B2(0)*B2(0)+B2(1)*B2(1)), B2A1 (B2(0)*A1(0)+B2(1)*A1(1));          
   return  -A1(i) + B2A1/B2B2 * B2(i);}
 
- /// Altitude vector 2 (i.e normal vector with length of altitude) component i
- ///  h2 = (B2 . A1/|A1|) A1/|A1| - B2
+ /// \short Altitude vector 2 (i.e normal vector with length of altitude) 
+ /// component i: h2 = (B2 . A1/|A1|) A1/|A1| - B2
  inline double altitude_vector_2(unsigned i) const{
    double B2A1 (B2(0)*A1(0)+B2(1)*A1(1)), A1A1 (A1(0)*A1(0)+A1(1)*A1(1));
   return -B2(i) + B2A1/A1A1 * A1(i);}
 
- /// Eccentricity Parameters
+ /// \short Eccentricity Parameters
  /// eta_1 = 1 -  2 A1.B2 / B2.B2
  inline double eta_1() const{
    double B2B2 (B2(0)*B2(0)+B2(1)*B2(1)), B2A1 (B2(0)*A1(0)+B2(1)*A1(1));
   return  1-2*B2A1/B2B2;}
 
+ /// \short Eccentricity Parameters
  /// eta_2 =-1 +  2 A1.B2 / A1.A1
  inline double eta_2() const{
    double A1B2 (A1(0)*B2(0)+A1(1)*B2(1)), A1A1 (A1(0)*A1(0)+A1(1)*A1(1));
@@ -465,27 +468,27 @@ protected:
  // We need 1d shape functions for the trace of the function and its' normal
  // derivative
 
- /// Get 5th order, 1D hermite shape functions
+ /// \short Get 5th order, 1D hermite shape functions
  /// Dofs: w(0) w(1) w'(0) w'(1) w''(0) w''(1)
  void  hermite_shape_1d_5(const double& s, Shape& psi) const;
 
- /// Get 5th order, 1D hermite shape functions at basic nodes
+ /// \short Get 5th order, 1D hermite shape functions at basic nodes
  /// Dofs: w(0) w(1) w'(0) w'(1) w''(0) w''(1)
  void  hermite_shape_1d_5(const s_basic_node& s, Shape& psi) const;
 
- /// The local derivative of 5th order, 1D hermite shape functions
+ /// \short The local derivative of 5th order, 1D hermite shape functions
  /// Dofs: w(0) w(1) w'(0) w'(1) w''(0) w''(1)
  void  d_hermite_shape_1d_5(const double& s, DShape& dpsi) const;
 
- /// The local derivative of 5th order, 1D hermite shape functions
+ /// \short The local derivative of 5th order, 1D hermite shape functions
  /// Dofs: w(0) w(1) w'(0) w'(1) w''(0) w''(1) at basic_node
  void  d_hermite_shape_1d_5(const s_basic_node& s, DShape& dpsi) const;
 
- /// Get 3rd order, 1D hermite shape functions
+ /// \short Get 3rd order, 1D hermite shape functions
  /// Dofs: w(0) w(1) w'(0) w'(1)
  void  hermite_shape_1d_3(const double& s, Shape& psi) const;
 
- /// Get 3rd order, 1D hermite shape functions
+ /// \short Get 3rd order, 1D hermite shape functions
  /// Dofs: w(0) w(1) w'(0) w'(1) at basic node
  void  hermite_shape_1d_3(const s_basic_node& s, Shape& psi) const;
 
@@ -500,8 +503,8 @@ protected:
  Vector<double> f_1(const s_basic_node& s0) const;
  /// Local derivative of padded shape functions for trace on side 1 
  Vector<double> df_1_ds(const double& s0) const;
- /// Local derivative of padded shape functions for trace on side 1  at basic 
- /// nodes
+ /// \short Local derivative of padded shape functions for trace on side 1  at
+ /// basic nodes 
  Vector<double> df_1_ds(const s_basic_node& s0) const;
 
  /// Padded shape functions for trace on side 2 
@@ -510,8 +513,8 @@ protected:
  Vector<double> f_2(const s_basic_node& s1) const;
  /// Local derivative of padded shape functions for trace on side 2 
  Vector<double> df_2_ds(const double& s1) const;
- /// Local derivative of padded shape functions for trace on side 2  at basic 
- /// nodes
+ /// \short Local derivative of padded shape functions for trace on side 2  at
+ /// basic nodes
  Vector<double> df_2_ds(const s_basic_node& s1) const;
 
  /// Padded shape functions for trace on (curved) side 3 
@@ -543,8 +546,8 @@ protected:
  /// Fill in matrix that transforms the global dofs to the local dofs
  void local_to_global_matrix(DenseMatrix<double>& l2g) const;
 
- /// Fill in  matrix that transforms between the basic dofs (36) and the local 
- /// dofs (21)
+ /// \short Fill in  matrix that transforms between the basic dofs (36) and the 
+ /// local dofs (21)
  void basic_to_local_matrix(DenseMatrix<double>& b2l) const;
 
  /// Fill in submatrix used to construct the full local to basic matrix
@@ -562,20 +565,20 @@ protected:
  /// Fill in submatrix used to construct the full local to basic matrix
  void  basic_to_local_submatrix_7 (DenseMatrix<double>& M7) const;
 
- /// Fill in the matrix that transforms from the 36(55) basis monomials of p7(9) 
- /// to the 36(55) shape functions on the basic triangle
+ /// \short Fill in the matrix that transforms from the 36(55) basis monomials 
+ /// of p7(9)  to the 36(55) shape functions on the basic triangle.
  /// It was derived in mathematica and is extremely large.
  void monomial_to_basic_matrix(DenseMatrix<double>& m) const;
 
- /// Fill in the inverse matrix that transforms from the 36(55) basis monomials 
- /// of p7(9) (may be accurate/similar time to invert on the fly)
- /// to the 36(55) shape functions on the basic triangle
- /// It was derived in mathematica and is extremely large.
+ /// \short Fill in the inverse matrix that transforms from the 36(55) basis 
+ /// monomials of p7(9) (may be accurate/similar time to invert on the fly)
+ /// to the 36(55) shape functions on the basic triangle.
  void inverse_monomial_to_basic_matrix(DenseDoubleMatrix& m) const;
 
- /// Get full basis for a generic (BOUNDARY_ORDER+4)th order bivariate polynomial
+ /// \short Get full basis for a generic (BOUNDARY_ORDER+4)th order bivariate 
+ /// polynomial:
  /// i.e 36 basis monomials for generic p7 polynomial
- /// i.e 55 basis monomials for generic p9 polynomial
+ /// ;   55 basis monomials for generic p9 polynomial.
  void  full_basis_monomials(const Vector<double>& s, Shape& pn) const;
 
  /// Get full basis for the basic element
@@ -587,12 +590,12 @@ protected:
  /// Get second derivatives of full basis for the basic element
  void  d2full_basic_polynomials(const Vector<double>& s, DShape& d2pn) const;
 
- /// Get first derivatives of the 36(55) basis monomials for generic p7(9) 
- /// polynomial
+ /// \short Get first derivatives of the 36(55) basis monomials for generic 
+ /// p7(9) polynomial
  void dfull_basis_monomials(const Vector<double>& s, DShape& dp7) const;
 
- /// Get second derivatives of the 36(55) basis monomials for generic p7(9)
- /// polynomial
+ /// \short Get second derivatives of the 36(55) basis monomials for generic 
+ // p7(9) polynomial
  void d2full_basis_monomials(const Vector<double>& s, DShape& d2p7) const;
 
  /// Get the basis functions at basic coordinate s
@@ -651,8 +654,8 @@ protected:
 
  // HERE WRITE A PUBLIC d2shape_local
 
- /// Array to hold the weights and knots (defined in cc file) HERE this is a bit
- /// dodgy
+ // HERE this is a bit dodgy
+ /// \short Array to hold the weights and knots (defined in cc file) 
  static const double Internal_dof_knots[(BOUNDARY_ORDER == 3 ? 3 : 10)][2];
 
 public:
@@ -794,7 +797,7 @@ OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
    } 
 }
 
-/// Inline functions
+// Inline functions
 /// Self check function: 
 /// 1. Checks for inverted elements.
 /// 2. Checks that the specified parametric edge agrees at s_ubar and s_obar 

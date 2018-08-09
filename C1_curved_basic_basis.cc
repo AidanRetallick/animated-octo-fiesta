@@ -43,6 +43,7 @@
 namespace oomph {
 namespace MyC1CurvedElements {
 
+/// Precomputed basis polynomials for the 3rd order boundary representation
 template <>
 void  BernadouElementBasis<3>::full_basic_polynomials(const Vector<double>& s, Shape&
 phi) const
@@ -72,6 +73,7 @@ phi) const
    }
  }
 
+/// Precomputed dbasis polynomials for the 3rd order boundary representation
 template <>
 void  BernadouElementBasis<3>::dfull_basic_polynomials(const Vector<double>& s, DShape&
 dphi) const
@@ -104,6 +106,7 @@ dphi) const
    }
  }
 
+/// Precomputed d2basis polynomials for the 3rd order boundary representation
 template <>
 void  BernadouElementBasis<3>::d2full_basic_polynomials(const Vector<double>& s, DShape&
 d2phi) const
@@ -137,6 +140,7 @@ d2phi) const
 
  }
 
+/// Precomputed basis polynomials for the 5th order boundary representation
 template <>
 void  BernadouElementBasis<5>::full_basic_polynomials(const Vector<double>& s_basic,
 Shape& phi) const
@@ -448,6 +452,7 @@ t, 2))/125.;
 
  } 
 
+/// Precomputed dbasis polynomials for the 5th order boundary representation
 template <> void  BernadouElementBasis<5>::dfull_basic_polynomials(const Vector<double>&
 s_basic, DShape& dphi) const 
 { 
@@ -1185,6 +1190,7 @@ t)*pow(s, 2)*(1 - s - 11*t + 9*s*t + 15*pow(t, 2));
 6*s - 54*t + 54*s*t + 54*pow(t, 2)); 
 }
 
+/// Precomputed d2basis polynomials for the 5th order boundary representation
 template <> void  BernadouElementBasis<5>::d2full_basic_polynomials(const Vector<double>&
 s_basic, DShape&d2phi) const 
 {

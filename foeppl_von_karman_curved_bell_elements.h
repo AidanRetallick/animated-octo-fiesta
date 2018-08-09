@@ -72,7 +72,7 @@ b, const DisplacementFctPt& u);
  typedef void (*BasisVectorsFctPt) (const Vector<double>& x, Vector<double>& b1,
   Vector<double>& b2, DenseMatrix<double>& Db1, DenseMatrix<double>& Db2);
 
-// /// \short enum to enumerate the possible edges that could be curved
+ /// \short enum to enumerate the possible edges that could be curved
  typedef typename MyC1CurvedElements::Edge Edge; 
 
  /// \short Get the pointer to the Curved shape class data member
@@ -102,25 +102,35 @@ b, const DisplacementFctPt& u);
   const double& s_obar,
   CurvilineGeomObject* parametric_edge);
  
+ /// Lagrange interpolated shape for in--plane displacements
  void shape_u(const Vector<double> &s, Shape &psi) const;
   
+ /// Lagrange interpolated d_shape for in--plane displacements
  void dshape_u_local(const Vector<double> &s,
                     Shape &psi, DShape &dpsids) const;
 
- // Quick, lets rob some of WPs code! 
+ /// Linear lagrange shape used for mapping  
  void Lshape(const Vector<double> &s, Shape &psi) const;
   
+ /// Linear lagrange dshape used for mapping  
  void dLshape_local(const Vector<double> &s,
                     Shape &psi, DShape &dpsids) const;
+
+ /// \short Get the Bell local to eulerian Jacobian determinant (based on 
+ /// linear Lagrange shape)
  double J_eulerian1(const Vector<double> &s) const;
 
+ /// \short Get the Bell local to eulerian Jacobian (based on linear 
+ /// Lagrange shape)
  double local_to_eulerian_mapping2(const DShape &dpsids,
                                            DenseMatrix<double> &jacobian,
                                            DenseMatrix<double>
 &inverse_jacobian) const;
 
+  /// \short Get the bell shape (not basis) this is the linear Lagrange shape
   void my_interpolated_x(const Vector<double> &s, Vector<double> &x) const;
 
+  ///\short Precompute the association matrix
   void precompute_association_matrix(DenseMatrix<double>& m)
    {
     // If the element has been upgraded

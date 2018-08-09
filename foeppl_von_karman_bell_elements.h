@@ -66,29 +66,40 @@ unsigned& b, const DisplacementFctPt& w);
  void fix_in_plane_displacement_dof(const unsigned& dof_number, const unsigned&b,
   const DisplacementFctPt& u);
 
- // Quick, lets rob some of WPs code! 
+ /// Lagrange interpolated shape for in--plane displacements
  void shape_u(const Vector<double> &s, Shape &psi) const;
  
+ /// Lagrange interpolated d_shape for in--plane displacements
  void Lshape(const Vector<double> &s, Shape &psi) const;
   
+ /// Linear lagrange shape used for mapping  
  void dshape_u_local(const Vector<double> &s,
                     Shape &psi, DShape &dpsids) const;
 
+ /// Linear lagrange dshape used for mapping  
  void dLshape_local(const Vector<double> &s,
                     Shape &psi, DShape &dpsids) const;
+ /// \short Get the Bell local to eulerian Jacobian determinant (based on 
+ /// linear Lagrange shape)
  double J_eulerian1(const Vector<double> &s) const;
 
+ /// \short Get the Bell local to eulerian Jacobian (based on linear 
+ /// Lagrange shape)
  double local_to_eulerian_mapping2(const DShape &dpsids,
                                            DenseMatrix<double> &jacobian,
                                            DenseMatrix<double>
 &inverse_jacobian) const;
 
+  /// \short Get the bell shape (not basis) this is the linear Lagrange shape
   void my_interpolated_x(const Vector<double> &s, Vector<double> &x) const;
 
 
+  ///\short Precompute the association matrix
   void precompute_association_matrix(DenseMatrix<double>& m){}; //Do nothing
-  // Not used
+
+  // Return n_basis_functions (unused)
   double n_basis_functions(){return 18;};
+  // Return n_basic_basis_functions (unused)
   double n_basic_basis_functions(){return 18;};
 private:
 

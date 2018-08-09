@@ -38,7 +38,9 @@ namespace oomph
 // My Geometric object
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-
+/// \short Specialisation of GeomObject that has a scalar parametric zeta and 
+/// a 2D vector r coordinate r = (r_1(zeta),r_2(zeta)). 
+/// This is suitable for use in meshing/construction of planar objects.
 class CurvilineGeomObject : GeomObject
 
 {
@@ -110,7 +112,7 @@ public:
     OOMPH_EXCEPTION_LOCATION);
   }
 
- // Get s from x for part 0 of the boundary (inverse mapping - for convenience)
+ /// Get s from x for part 0 of the boundary (inverse mapping - for convenience)
  virtual double get_zeta(const Vector<double>& x)
  {
    throw OomphLibError(
@@ -122,6 +124,7 @@ public:
 };
 
 
+/// \short Specialisation of CurvilineGeomObject for half a circle.
 class CurvilineCircleTop : public CurvilineGeomObject
 {
 public:
@@ -182,7 +185,7 @@ public:
                          Vector<double> &drdzeta) const
   { drdzeta[0] = std::sin(zeta);  drdzeta[1] =-std::cos(zeta);}
 
- // Get s from x for part 0 of the boundary (inverse mapping - for convenience)
+ /// Get s from x for part 0 of the boundary (inverse mapping - for convenience)
  double get_zeta(const Vector<double>& x)
  {
  // The arc length (parametric parameter) for the upper semi circular arc
@@ -192,6 +195,7 @@ public:
 
 };
 
+/// \short Specialisation of CurvilineGeomObject for half a circle.
 class CurvilineCircleBottom : public CurvilineGeomObject
 {
 public:
@@ -252,7 +256,7 @@ public:
                          Vector<double> &drdzeta) const
   { drdzeta[0] =-std::sin(zeta);  drdzeta[1] = std::cos(zeta);}
 
- // Get s from x for part 0 of the boundary (inverse mapping - for convenience)
+ /// Get s from x for part 0 of the boundary (inverse mapping - for convenience)
  double get_zeta(const Vector<double>& x)
  {
  // The arc length (parametric parameter) for the upper semi circular arc

@@ -34,39 +34,58 @@ namespace oomph {
 namespace MyC1CurvedElements{
 
 // Declaration of a function protypes  (explicit instantiation)
+/// Fill in matrix to convert the monomials to the basic shape functions
 template <>
 void oomph::MyC1CurvedElements::BernadouElementBasis<3>::
  monomial_to_basic_matrix(oomph::DenseMatrix<double>& m) const;
 
+/// \short Fill in inverse matrix to convert the monomials to the basic shape 
+/// functions (BROKEN)
+template <>
+void oomph::MyC1CurvedElements::BernadouElementBasis<2>::
+ inverse_monomial_to_basic_matrix(oomph::DenseMatrix<double>& m) const;
+
+/// Fill in the (precomputed) full basic polynomials 
 template <>
 void  BernadouElementBasis<3>::full_basic_polynomials(const Vector<double>& s, Shape&
 phi) const;
 
+/// Fill in the derivatives of the (precomputed) full basic polynomials 
 template <>
 void  BernadouElementBasis<3>::dfull_basic_polynomials(const Vector<double>& s, DShape&
 phi) const;
 
+/// Fill in second derivatives of the (precomputed) full basic polynomials 
 template <>
 void  BernadouElementBasis<3>::d2full_basic_polynomials(const Vector<double>& s, DShape&
 phi) const;
 
+/// Fill in matrix to convert the monomials to the basic shape functions
 template <>
 void oomph::MyC1CurvedElements::BernadouElementBasis<5>::
  monomial_to_basic_matrix(oomph::DenseMatrix<double>& m) const;
 
+/// Fill in inverse matrix to convert the monomials to the basic shape functions
+template <>
+void oomph::MyC1CurvedElements::BernadouElementBasis<5>::
+ inverse_monomial_to_basic_matrix(oomph::DenseMatrix<double>& m) const;
+
+/// Fill in the (precomputed) full basic polynomials 
 template <>
 void  BernadouElementBasis<5>::full_basic_polynomials(const Vector<double>& s, Shape&
 phi) const;
 
+/// Fill in the derivatives of the (precomputed) full basic polynomials 
 template <>
 void  BernadouElementBasis<5>::dfull_basic_polynomials(const Vector<double>& s, DShape&
 phi) const;
 
+/// Fill in second derivatives of the (precomputed) full basic polynomials 
 template <>
 void  BernadouElementBasis<5>::d2full_basic_polynomials(const Vector<double>& s, DShape&
 phi) const;
 
-// Parametric function describing curved edge as a function of local coords
+/// Parametric function describing curved edge as a function of local coords
 template <>
 void BernadouElementBasis<3>::f_k(const Vector<double>& s, Vector<double>& fk) const
  {
@@ -85,7 +104,7 @@ void BernadouElementBasis<3>::f_k(const Vector<double>& s, Vector<double>& fk) c
    }
  }
 
-// Parametric function describing curved edge as a function of local coords
+/// Parametric function describing curved edge as a function of local coords
 template <>
 void BernadouElementBasis<5>::f_k(const Vector<double>& s, Vector<double>& fk) const
  {
@@ -117,13 +136,13 @@ void BernadouElementBasis<5>::f_k(const Vector<double>& s, Vector<double>& fk) c
    }
  }
 
-// Get the physical coordinate
+/// Get the physical coordinate
 template<unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::coordinate_x(const Vector<double>& s,
 Vector<double>& fk) const
  {Vector<double> s_basic(s); permute_shape(s_basic); f_k(s_basic,fk);}
 
-// The approximated boundary polynomial at point along arclength s2
+/// The approximated boundary polynomial at point along arclength s2
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::psi_h  (const double& s1, Vector<double>& psih) const
  {
@@ -133,7 +152,7 @@ void BernadouElementBasis<BOUNDARY_ORDER>::psi_h  (const double& s1, Vector<doub
   f_k(s,psih);
  }
 
-// Get the derivative, psi'(x2)
+/// Get the derivative, psi'(x2)
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::d_psi(const double& s1, Vector<double>& dpsi) const
  {
@@ -144,7 +163,7 @@ void BernadouElementBasis<BOUNDARY_ORDER>::d_psi(const double& s1, Vector<double
    {dpsi[i]*=(s_obar-s_ubar);}
  }
 
-// The Jacobian of the mapping from basic to global
+/// The Jacobian of the mapping from basic to global
 template <>
 void BernadouElementBasis<3>::get_basic_jacobian(const Vector<double> s,
  DenseMatrix<double>& jacobian) const
@@ -174,7 +193,7 @@ void BernadouElementBasis<3>::get_basic_jacobian(const Vector<double> s,
    }
  }
 
-// Get the Jacobian of the mapping from basic to global 
+/// Get the Jacobian of the mapping from basic to global 
 template <>
 void BernadouElementBasis<5>::get_basic_jacobian(const Vector<double> s,
  DenseMatrix<double>& jacobian) const
@@ -213,10 +232,10 @@ void BernadouElementBasis<5>::get_basic_jacobian(const Vector<double> s,
    }
  }
 
-// The Hessian of the global coordinate (of the vector mapping) - like a second
-// order Jacobian.
-//        d^2 x_i
-// or:   ----------    (rank 3) with x the global coordinate and s the basic.
+/// The Hessian of the global coordinate (of the vector mapping) - like a second
+/// order Jacobian.
+///        d^2 x_i
+/// or:   ----------    (rank 3) with x the global coordinate and s the basic.
  //       d s_i ds_j
 template <>
 void BernadouElementBasis<3>::get_basic_hessian(const Vector<double>&s, 
@@ -241,10 +260,10 @@ void BernadouElementBasis<3>::get_basic_hessian(const Vector<double>&s,
    }
  }
 
-// The Hessian of the global coordinate (of the vector mapping) - like a second
-// order Jacobian.
-//        d^2 x_i
-// or:   ----------    (rank 3) with x the global coordinate and s the basic.
+/// The Hessian of the global coordinate (of the vector mapping) - like a second
+/// order Jacobian.
+///        d^2 x_i
+/// or:   ----------    (rank 3) with x the global coordinate and s the basic.
  //       d s_i ds_j
 template <>
 void BernadouElementBasis<5>::get_basic_hessian(const Vector<double>&s, 
@@ -281,7 +300,7 @@ void BernadouElementBasis<5>::get_basic_hessian(const Vector<double>&s,
    }
  }
 
-// The matrix that transforms the global dofs to the local dofs
+/// The matrix that transforms the global dofs to the local dofs
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::local_to_global_matrix(DenseMatrix<double>& d) const
  {
@@ -367,8 +386,8 @@ void BernadouElementBasis<BOUNDARY_ORDER>::local_to_global_matrix(DenseMatrix<do
    }
  }
 
-// Get 5th order, 1D hermite shape functions
-// Dofs: w(0) w(1) w'(0) w'(1) w''(0) w''(1)
+/// Get 5th order, 1D hermite shape functions
+/// Dofs: w(0) w(1) w'(0) w'(1) w''(0) w''(1)
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::hermite_shape_1d_5(const double& s, Shape& psi) const
  {
@@ -381,8 +400,8 @@ void BernadouElementBasis<BOUNDARY_ORDER>::hermite_shape_1d_5(const double& s, S
   psi[5] = 0.5*pow(1-s,2)*pow(s,3);
  }
 
-// Get 5th order, 1D hermite shape functions
-// Dofs: w(0) w(1) w'(0) w'(1) w''(0) w''(1)
+/// Get 5th order, 1D hermite shape functions
+/// Dofs: w(0) w(1) w'(0) w'(1) w''(0) w''(1)
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::hermite_shape_1d_5(const s_basic_node& s, Shape& psi) const
  {
@@ -417,7 +436,7 @@ void BernadouElementBasis<BOUNDARY_ORDER>::hermite_shape_1d_5(const s_basic_node
    }
  }
 
-// Get the derivatives of 5th order 1d shape
+/// Get the derivatives of 5th order 1d shape
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::d_hermite_shape_1d_5(const double& s, DShape& dpsi) const
  {
@@ -430,7 +449,7 @@ void BernadouElementBasis<BOUNDARY_ORDER>::d_hermite_shape_1d_5(const double& s,
   dpsi(5,0) = 0.5*(1-s)*s*s*(3-5*s);
  }
 
-// Get the derivatives of 5th order 1d shape at the basic nodes
+/// Get the derivatives of 5th order 1d shape at the basic nodes
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::d_hermite_shape_1d_5(const s_basic_node& s, DShape& dpsi) const
  {
@@ -465,8 +484,8 @@ void BernadouElementBasis<BOUNDARY_ORDER>::d_hermite_shape_1d_5(const s_basic_no
   }
  }
 
-// Get 3rd order, 1D hermite shape functions
-// Dofs: w(0) w(1) w'(0) w'(1)
+/// Get 3rd order, 1D hermite shape functions
+/// Dofs: w(0) w(1) w'(0) w'(1)
 template <unsigned BOUNDARY_ORDER>
 void  BernadouElementBasis<BOUNDARY_ORDER>::hermite_shape_1d_3(const double& s, Shape& psi) const
  {
@@ -477,8 +496,8 @@ void  BernadouElementBasis<BOUNDARY_ORDER>::hermite_shape_1d_3(const double& s, 
   psi[3]= (s-1)*pow(s,2);
  }
 
-// Get 3rd order, 1D hermite shape functions
-// Dofs: w(0) w(1) w'(0) w'(1)
+/// Get 3rd order, 1D hermite shape functions
+/// Dofs: w(0) w(1) w'(0) w'(1)
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::hermite_shape_1d_3(const s_basic_node& s, Shape& psi) const
  {
@@ -507,11 +526,11 @@ void BernadouElementBasis<BOUNDARY_ORDER>::hermite_shape_1d_3(const s_basic_node
    }
  }
 
-// The representation on trace 1 will be identical regardless of the boundary
-// interpolation - as it has to be C1 continuous with straight sided Bell
-// elements
-// Now define the w trace column vectors fi i in {1,2,3} -these vectors are
-// effectively the 'basis' functions on the trace.
+/// The representation on trace 1 will be identical regardless of the boundary
+/// interpolation - as it has to be C1 continuous with straight sided Bell
+/// elements
+/// Now define the w trace column vectors fi i in {1,2,3} -these vectors are
+/// effectively the 'basis' functions on the trace.
 template <unsigned BOUNDARY_ORDER>
 Vector<double> BernadouElementBasis<BOUNDARY_ORDER>::f_1(const double& s0) const
  {
@@ -533,10 +552,10 @@ Vector<double> BernadouElementBasis<BOUNDARY_ORDER>::f_1(const double& s0) const
  return f1;
  }
 
-// The representation on trace 1 will be identical regardless of the boundary
-// interpolation - as it has to be C1 continuous with straight sided Bell
-// elements.
-// First (tangent) derivative of trace
+/// The representation on trace 1 will be identical regardless of the boundary
+/// interpolation - as it has to be C1 continuous with straight sided Bell
+/// elements.
+/// First (tangent) derivative of trace
 template <unsigned BOUNDARY_ORDER>
 Vector<double> BernadouElementBasis<BOUNDARY_ORDER>::df_1_ds(const double& s0) const
  {
@@ -558,10 +577,10 @@ Vector<double> BernadouElementBasis<BOUNDARY_ORDER>::df_1_ds(const double& s0) c
  return df1;
  }
 
-// The representation on trace 2 will be identical regardless of the boundary
-// interpolation - as it has to be C1 continuous with straight sided Bell
-// elements.
-// First (tangent) derivative of trace
+/// The representation on trace 2 will be identical regardless of the boundary
+/// interpolation - as it has to be C1 continuous with straight sided Bell
+/// elements.
+/// First (tangent) derivative of trace
 template <unsigned  BOUNDARY_ORDER>
 Vector<double> BernadouElementBasis<BOUNDARY_ORDER>::f_2(const double& s1) const
  {
@@ -583,9 +602,9 @@ Vector<double> BernadouElementBasis<BOUNDARY_ORDER>::f_2(const double& s1) const
   return f2;
  }
 
-// The representation on trace 2 will be identical regardless of the boundary
-// interpolation - as it has to be C1 continuous with straight sided Bell
-// elements.
+/// The representation on trace 2 will be identical regardless of the boundary
+/// interpolation - as it has to be C1 continuous with straight sided Bell
+/// elements.
 template <unsigned BOUNDARY_ORDER>
 Vector<double> BernadouElementBasis<BOUNDARY_ORDER>::df_2_ds(const double& s1) const
  {
@@ -607,8 +626,8 @@ Vector<double> BernadouElementBasis<BOUNDARY_ORDER>::df_2_ds(const double& s1) c
   return f2;
  }
 
-// This is the curved edge trace - and will therefore depend on boundary
-// representation.
+/// This is the curved edge trace - and will therefore depend on boundary
+/// representation.
 template <>
 Vector<double> BernadouElementBasis<3>::f_3(const double& s0) const
  {
@@ -636,8 +655,8 @@ Vector<double> BernadouElementBasis<3>::f_3(const double& s0) const
   return f3;
  }
 
-// This is the curved edge trace - and will therefore depend on boundary
-// representation.
+/// This is the curved edge trace - and will therefore depend on boundary
+/// representation.
 template <>
 Vector<double> BernadouElementBasis<5>::f_3(const double& s1) const
  {
@@ -664,9 +683,9 @@ Vector<double> BernadouElementBasis<5>::f_3(const double& s1) const
   return f3;
  }
 
-// This is the curved edge trace - and will therefore depend on boundary
-// representation.
-// Tangential derivative of basis.
+/// This is the curved edge trace - and will therefore depend on boundary
+/// representation.
+/// Tangential derivative of basis.
 template <>
 Vector<double> BernadouElementBasis<3>::df_3_ds(const double& s0) const
  {
@@ -694,9 +713,9 @@ Vector<double> BernadouElementBasis<3>::df_3_ds(const double& s0) const
   return f3;
  }
 
-// This is the curved edge trace - and will therefore depend on boundary
-// representation.
-// Tangential derivative of basis.
+/// This is the curved edge trace - and will therefore depend on boundary
+/// representation.
+/// Tangential derivative of basis.
 template <>
 Vector<double> BernadouElementBasis<5>::df_3_ds(const double& s0) const
  {
@@ -723,10 +742,10 @@ Vector<double> BernadouElementBasis<5>::df_3_ds(const double& s0) const
   return f3;
  }
 
-// Now define the  w,n trace column vectors gi i in {1,2,3}
-// The representation on trace 1 will be identical regardless of the boundary
-// interpolation - as it has to be C1 continuous with straight sided Bell
-// elements.
+/// Now define the  w,n trace column vectors gi i in {1,2,3}
+/// The representation on trace 1 will be identical regardless of the boundary
+/// interpolation - as it has to be C1 continuous with straight sided Bell
+/// elements.
 template <unsigned BOUNDARY_ORDER>
 Vector<double> BernadouElementBasis<BOUNDARY_ORDER>::g_1(const double& s0) const
  {
@@ -758,10 +777,10 @@ Vector<double> BernadouElementBasis<BOUNDARY_ORDER>::g_1(const double& s0) const
   return g1;
  }
 
-// Now define the  w,n trace column vectors gi i in {1,2,3}
-// The representation on trace 1 will be identical regardless of the boundary
-// interpolation - as it has to be C1 continuous with straight sided Bell
-// elements.
+/// Now define the  w,n trace column vectors gi i in {1,2,3}
+/// The representation on trace 1 will be identical regardless of the boundary
+/// interpolation - as it has to be C1 continuous with straight sided Bell
+/// elements.
 template <unsigned BOUNDARY_ORDER>
 Vector<double> BernadouElementBasis<BOUNDARY_ORDER>::g_2(const double& s0) const
  {
@@ -793,8 +812,8 @@ Vector<double> BernadouElementBasis<BOUNDARY_ORDER>::g_2(const double& s0) const
   return g1;
  }
 
-// This is the curved edge trace - and will therefore depend on boundary
-// representation.
+/// This is the curved edge trace - and will therefore depend on boundary
+/// representation.
 template <>
 Vector<double> BernadouElementBasis<3>::g_3(const double& s0) const
  {
@@ -831,8 +850,8 @@ Vector<double> BernadouElementBasis<3>::g_3(const double& s0) const
   return g3;
  }
 
-// This is the curved edge trace - and will therefore depend on boundary
-// representation.
+/// This is the curved edge trace - and will therefore depend on boundary
+/// representation.
 template <>
 Vector<double> BernadouElementBasis<5>::g_3(const double& s0) const
  {
@@ -870,8 +889,8 @@ Vector<double> BernadouElementBasis<5>::g_3(const double& s0) const
   return g3;
  }
 
-// Get 36 (54) basis monomials for generic p7(9) polynomial on basic triangle
-// Rename to something more generic and template it
+/// Get 36 (54) basis monomials for generic p7(9) polynomial on basic triangle
+/// Rename to something more generic and template it
 
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::full_basis_monomials(const Vector<double>& s,
@@ -893,7 +912,7 @@ Shape& p7) const
    }
  }
 
-// Get first derivatives of the 36(54) basis monomials for generic p7(9) polynomial
+/// Get first derivatives of the 36(54) basis monomials for generic p7(9) polynomial
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::dfull_basis_monomials(const Vector<double>& s, DShape& dp7) const
 {
@@ -923,7 +942,7 @@ void BernadouElementBasis<BOUNDARY_ORDER>::dfull_basis_monomials(const Vector<do
    }
 }
 
-// Get second derivatives of the 36(55) basis monomials for generic p7(9) polynomial
+/// Get second derivatives of the 36(55) basis monomials for generic p7(9) polynomial
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::d2full_basis_monomials(const Vector<double>& s, DShape& d2p7)
  const
@@ -963,8 +982,8 @@ void BernadouElementBasis<BOUNDARY_ORDER>::d2full_basis_monomials(const Vector<d
 
 
 
-// Submatrix M1 (B_1 in Bernadou and Boisserie 1997)
-// This transforms w(ai) onto basic element (identity matrix)
+/// Submatrix M1 (B_1 in Bernadou and Boisserie 1997)
+/// This transforms w(ai) onto basic element (identity matrix)
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::basic_to_local_submatrix_1 (DenseMatrix<double>& m1) const
  {
@@ -973,8 +992,8 @@ void BernadouElementBasis<BOUNDARY_ORDER>::basic_to_local_submatrix_1 (DenseMatr
    m1(i,i) = 1.0; // Identity matrix
  }
 
-// Submatrix M2 (B_2 in Bernadou and Boisserie 1997)
-// This transforms w,j(ai) onto local dofs (which can be converted to basic dofs)
+/// Submatrix M2 (B_2 in Bernadou and Boisserie 1997)
+/// This transforms w,j(ai) onto local dofs (which can be converted to basic dofs)
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::basic_to_local_submatrix_2 (DenseMatrix<double>& m2) const
  {
@@ -999,10 +1018,10 @@ void BernadouElementBasis<BOUNDARY_ORDER>::basic_to_local_submatrix_2 (DenseMatr
      m2(i+3,j)=b2(i,j);
  }
 
-// Submatrix M3 (B_3 in Bernadou and Boisserie 1997)
-// This transforms w,jk(ai) onto basic element. There will be dependance on
-// first derivatives due to the (in general) non affine mapping
-// This will be different between element orders.
+/// Submatrix M3 (B_3 in Bernadou and Boisserie 1997)
+/// This transforms w,jk(ai) onto basic element. There will be dependance on
+/// first derivatives due to the (in general) non affine mapping
+/// This will be different between element orders.
 template <>
 void BernadouElementBasis<3>::basic_to_local_submatrix_3 (DenseMatrix<double>& m3) const
  {
@@ -1093,10 +1112,10 @@ void BernadouElementBasis<3>::basic_to_local_submatrix_3 (DenseMatrix<double>& m
    }
  }
 
-// Submatrix M3 (B_3 in Bernadou and Boisserie 1997)
-// This transforms w,jk(ai) onto basic element. There will be dependance on
-// first derivatives due to the (in general) non affine mapping
-// This will be different between element orders.
+/// Submatrix M3 (B_3 in Bernadou and Boisserie 1997)
+/// This transforms w,jk(ai) onto basic element. There will be dependance on
+/// first derivatives due to the (in general) non affine mapping
+/// This will be different between element orders.
 template <>
 void BernadouElementBasis<5>::basic_to_local_submatrix_3 (DenseMatrix<double>& m3) const
  {
@@ -1193,10 +1212,10 @@ void BernadouElementBasis<5>::basic_to_local_submatrix_3 (DenseMatrix<double>& m
    }
  }
 
-// Submatrix M4 (B_4 in Bernadou and Boisserie 1997)
-// This transforms uses the trace functions to determine the normal derivative
-// degrees of freedom on side at points bi
-// This will be
+/// Submatrix M4 (B_4 in Bernadou and Boisserie 1997)
+/// This transforms uses the trace functions to determine the normal derivative
+/// degrees of freedom on side at points bi
+/// This will be
 template <>
 void BernadouElementBasis<3>::basic_to_local_submatrix_4 (DenseMatrix<double>& m4) const
  {
@@ -1247,9 +1266,9 @@ void BernadouElementBasis<3>::basic_to_local_submatrix_4 (DenseMatrix<double>& m
    }
  }
 
-// Submatrix M4 (B_4 in Bernadou and Boisserie 1997)
-// This transforms uses the trace functions to determine the normal derivative
-// degrees of freedom on side at points bi
+/// Submatrix M4 (B_4 in Bernadou and Boisserie 1997)
+/// This transforms uses the trace functions to determine the normal derivative
+/// degrees of freedom on side at points bi
 template <>
 void BernadouElementBasis<5>::basic_to_local_submatrix_4 (DenseMatrix<double>& m4) const
  {
@@ -1314,9 +1333,9 @@ void BernadouElementBasis<5>::basic_to_local_submatrix_4 (DenseMatrix<double>& m
    }
  }
 
-// Submatrix M5 (B_5 in Bernadou and Boisserie 1997)
-// This transforms uses the trace functions to determine the functional degrees
-// of freedom along edges 1 2 and 3
+/// Submatrix M5 (B_5 in Bernadou and Boisserie 1997)
+/// This transforms uses the trace functions to determine the functional degrees
+/// of freedom along edges 1 2 and 3
 template <>
 void BernadouElementBasis<3>::basic_to_local_submatrix_5 (DenseMatrix<double>& m5) const
  {
@@ -1338,9 +1357,9 @@ void BernadouElementBasis<3>::basic_to_local_submatrix_5 (DenseMatrix<double>& m
    }
  }
 
-// Submatrix M5 (B_5 in Bernadou and Boisserie 1997)
-// This transforms uses the trace functions to determine the functional degrees
-// of freedom along edges 1 2 and 3
+/// Submatrix M5 (B_5 in Bernadou and Boisserie 1997)
+/// This transforms uses the trace functions to determine the functional degrees
+/// of freedom along edges 1 2 and 3
 template <>
 void BernadouElementBasis<5>::basic_to_local_submatrix_5 (DenseMatrix<double>& m5) const
  {
@@ -1371,10 +1390,10 @@ void BernadouElementBasis<5>::basic_to_local_submatrix_5 (DenseMatrix<double>& m
    }
  }
 
-// Submatrix M5 (B_6 in Bernadou and Boisserie 1997)
-// This transforms uses the trace functions to determine the normal derivative
-// degrees of freeedom at points di
-// This needs specialising for higher order
+/// Submatrix M5 (B_6 in Bernadou and Boisserie 1997)
+/// This transforms uses the trace functions to determine the normal derivative
+/// degrees of freeedom at points di
+/// This needs specialising for higher order
 template <>
 void BernadouElementBasis<3>::basic_to_local_submatrix_6 (DenseMatrix<double>& m6) const
  {
@@ -1446,10 +1465,10 @@ void BernadouElementBasis<3>::basic_to_local_submatrix_6 (DenseMatrix<double>& m
 
  }
 
-// Submatrix M5 (B_6 in Bernadou and Boisserie 1997)
-// This transforms uses the trace functions to determine the normal derivative
-// degrees of freeedom at points di
-// This needs specialising for higher order
+/// Submatrix M5 (B_6 in Bernadou and Boisserie 1997)
+/// This transforms uses the trace functions to determine the normal derivative
+/// degrees of freeedom at points di
+/// This needs specialising for higher order
 template <>
 void BernadouElementBasis<5>::basic_to_local_submatrix_6 (DenseMatrix<double>& m6) const
  {
@@ -1569,9 +1588,9 @@ void BernadouElementBasis<5>::basic_to_local_submatrix_6 (DenseMatrix<double>& m
 
 
  }
-// Submatrix M5 (B_7 in Bernadou and Boisserie 1997)
-// The (functional) internal degrees of freedom, simply equal to the values of
-// function at w(Fk(ei))
+/// Submatrix M5 (B_7 in Bernadou and Boisserie 1997)
+/// The (functional) internal degrees of freedom, simply equal to the values of
+/// function at w(Fk(ei))
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::basic_to_local_submatrix_7 (DenseMatrix<double>& m7)const
  {
@@ -1580,8 +1599,8 @@ void BernadouElementBasis<BOUNDARY_ORDER>::basic_to_local_submatrix_7 (DenseMatr
    {m7(18+i,i) = 1.0;}
  }
 
-// This matrix transforms between the basic dofs (36/55) and the local dofs
-// (21/28)
+/// This matrix transforms between the basic dofs (36/55) and the local dofs
+/// (21/28)
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::basic_to_local_matrix(DenseMatrix<double>& m) const
  {
@@ -1634,7 +1653,7 @@ void BernadouElementBasis<BOUNDARY_ORDER>::basic_to_local_matrix(DenseMatrix<dou
   }
  }
 
-// Get the shape functions, with s as the basic coordinate
+/// Get the shape functions, with s as the basic coordinate
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::shape_basic(const Vector<double>& s, Shape& psi, Shape& bpsi) const
  {
@@ -1714,7 +1733,7 @@ void BernadouElementBasis<BOUNDARY_ORDER>::shape_basic(const Vector<double>& s, 
    }
  }
 
-// Get the derivatives of the shape functions, with s as the basic coordinate
+/// Get the derivatives of the shape functions, with s as the basic coordinate
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::d_shape_ds(const Vector<double>& s, Shape& psi, Shape& bpsi,
  DShape& dpsi, DShape& dbpsi) const
@@ -1880,9 +1899,9 @@ void BernadouElementBasis<BOUNDARY_ORDER>::d_shape_ds(const Vector<double>& s, S
     }
  }
 
-// Get the first derivative shape functions. All of the construction happens
-// elsewhere this just contains the matrix multiplications (which is done once
-//  at the start to avoid doing it six times).
+/// Get the first derivative shape functions. All of the construction happens
+/// elsewhere this just contains the matrix multiplications (which is done once
+///  at the start to avoid doing it six times).
 template <unsigned BOUNDARY_ORDER>
 double BernadouElementBasis<BOUNDARY_ORDER>::d_shape_dx(const Vector<double>& s, Shape& psi, Shape& bpsi,
  DShape& dpsi, DShape& dbpsi) const
@@ -1958,10 +1977,10 @@ double BernadouElementBasis<BOUNDARY_ORDER>::d_shape_dx(const Vector<double>& s,
   return det;
  }
 
-// Get the second derivative shape functions with s as the basic coordinate. All
-//  of the construction happens elsewhere this just contains the matrix
-//  multiplication (which is done once at the start to avoid doing it six times).
-// THIS IS A BOTTLENECK
+/// Get the second derivative shape functions with s as the basic coordinate. All
+///  of the construction happens elsewhere this just contains the matrix
+///  multiplication (which is done once at the start to avoid doing it six times).
+/// THIS IS A BOTTLENECK
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::d2_shape_ds2(const Vector<double>& s, Shape& psi, Shape& bpsi,
  DShape& dpsi, DShape& dbpsi, DShape& d2psi, DShape& d2bpsi) const
@@ -2165,8 +2184,8 @@ void BernadouElementBasis<BOUNDARY_ORDER>::d2_shape_ds2(const Vector<double>& s,
    }//End of loop over shape functions
  }
 
-// Fill in the Full association matrix for the element: this transforms from the
-// basic monomials/ shape functions to the physical basic functions.
+/// Fill in the Full association matrix for the element: this transforms from the
+/// basic monomials/ shape functions to the physical basic functions.
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::fill_in_full_association_matrix(DenseMatrix<double>&
 conversion_matrix)
@@ -2275,7 +2294,7 @@ conversion_matrix)
    }
 }
 
-// Get d2Shape with a precomputed  matrix argument
+/// Get d2Shape with a precomputed  matrix argument
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::d2_shape_ds2(const Vector<double>& s, Shape& psi, Shape& bpsi,
  DShape& dpsi, DShape& dbpsi, DShape& d2psi, DShape& d2bpsi, const
@@ -2412,9 +2431,9 @@ DenseMatrix<double>& conversion_matrix) const
    }//End of loop over shape functions
  }
 
-// Get the second derivative shape functions. All of the construction happens
-// elsewhere this just contains the matrix multiplications (which is done once
-//  at the start to avoid doing it six times).
+/// Get the second derivative shape functions. All of the construction happens
+/// elsewhere this just contains the matrix multiplications (which is done once
+///  at the start to avoid doing it six times).
 template <unsigned BOUNDARY_ORDER>
 double BernadouElementBasis<BOUNDARY_ORDER>::d2_shape_dx2(const Vector<double>& s, Shape& psi, Shape& bpsi,
  DShape& dpsi, DShape& dbpsi, DShape& d2psi, DShape& d2bpsi,
@@ -2555,9 +2574,9 @@ const DenseMatrix<double>& M) const
   return det;
  }
 
-// Get the second derivative shape functions. All of the construction happens
-// elsewhere this just contains the matrix multiplications (which is done once
-//  at the start to avoid doing it six times).
+/// Get the second derivative shape functions. All of the construction happens
+/// elsewhere this just contains the matrix multiplications (which is done once
+///  at the start to avoid doing it six times).
 template <unsigned BOUNDARY_ORDER>
 double BernadouElementBasis<BOUNDARY_ORDER>::d2_shape_dx2(const Vector<double>& s, Shape& psi, Shape& bpsi,
  DShape& dpsi, DShape& dbpsi, DShape& d2psi, DShape& d2bpsi) const
@@ -2705,7 +2724,7 @@ double BernadouElementBasis<BOUNDARY_ORDER>::d2_shape_dx2(const Vector<double>& 
 // template void BernadouElementBasis<5>::full_basis_monomials<Vector<double> >(const
 // Vector<double>&, Vector<double>&) const;
 
-// Locations of the internal dofs (in local coordinates)
+/// Locations of the internal dofs (in local coordinates)
 template<>
 const double BernadouElementBasis<3>::Internal_dof_knots[3][2]={
  {1/2., 1/4.},
@@ -2713,7 +2732,7 @@ const double BernadouElementBasis<3>::Internal_dof_knots[3][2]={
  {1/4., 1/4.}
 };
 
-// Locations of the internal dofs (in local coordinates)
+/// Locations of the internal dofs (in local coordinates)
 template<>
 const double BernadouElementBasis<5>::Internal_dof_knots[10][2]={
  {1/6., 2/3.},
