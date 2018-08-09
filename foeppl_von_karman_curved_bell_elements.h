@@ -130,7 +130,7 @@ b, const DisplacementFctPt& u);
      {Curved_shape.fill_in_full_association_matrix(m);}
    }; 
  
- // Wrappers
+ /// Wrappers
  double n_basis_functions(){return Curved_shape.n_basis_functions();};
  double n_basic_basis_functions(){return Curved_shape.n_basic_basis_functions();};
 protected:
@@ -294,7 +294,7 @@ protected:
 //                                                         Shape &test,
 //                                                         DShape &dtestdx)
 //  const;
-
+ /// Get dshape and dtest for C0 (in--plane) displacements
  inline double dshape_u_and_dtest_u_eulerian_foeppl_von_karman(const Vector<double> &s, 
   Shape &psi, DShape &dpsidx, Shape &test, DShape &dtestdx) const;
 
@@ -302,7 +302,7 @@ protected:
 private:
 
  #ifdef PARANOID
- // Internal counter to check consistency
+ /// Internal counter to check consistency
  unsigned Curved_edge_counter;
  #endif
 
@@ -311,10 +311,10 @@ private:
  static const unsigned Initial_Nvalue[];
 
  /// \short unsigned that holds the index the 'bubble' dofs of the element are
- // stored
+ /// stored
  unsigned Bubble_w_internal_index;
 
- //  Which edge is curved, none by default
+ ///  Which edge is curved, none by default
  Edge Curved_edge;
 
  /// Curved Shape function
@@ -326,7 +326,7 @@ private:
  /// Which nodes are we rotating
  Vector<unsigned> Nodes_to_rotate;
 
- // Number of nodes to rotate
+ /// Number of nodes to rotate
  unsigned Nnodes_to_rotate;
 
 

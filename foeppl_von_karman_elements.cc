@@ -43,6 +43,8 @@ namespace oomph
 
 
 //======================================================================
+/// Fill in generic residual and jacobian contribution 
+//======================================================================
 template <unsigned DIM, unsigned NNODE_1D>
 void  FoepplVonKarmanEquations<DIM,NNODE_1D>::
 fill_in_generic_residual_contribution_foeppl_von_karman(Vector<double> &residuals,

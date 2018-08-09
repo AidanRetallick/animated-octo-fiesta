@@ -103,7 +103,7 @@ protected:
  /// Which nodes are we rotating
  Vector<unsigned> Nodes_to_rotate;
 
- // Number of nodes to rotate
+ /// Number of nodes to rotate
  unsigned Nnodes_to_rotate;
  /// Get rotation matrices that change the degrees of freedom to the basis set
  /// by Rotated_basis_fct_pt
@@ -188,7 +188,7 @@ public:
 
    Nodes_to_rotate = nodes_to_rotate;
 
-   // Point to the basis vectors function
+   /// Point to the basis vectors function
    Rotated_basis_fct_pt = basis_vectors_fct_pt;
   }
 

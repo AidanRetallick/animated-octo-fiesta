@@ -102,7 +102,7 @@ const unsigned& boundary_number, const PressureFctPt& u)=0;
  
  public:
 
- // Get pointer to association matrix 
+ /// Get pointer to association matrix 
  DenseMatrix<double> *get_association_matrix_pt()const {return Association_matrix_pt;};
 
  public: 
@@ -206,7 +206,7 @@ const unsigned& boundary_number, const PressureFctPt& u)=0;
     OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
   }
 
- // Fill in the stress tensor
+ /// Fill in the stress tensor
  void get_sigma(DenseMatrix<double>& sigma, const DenseMatrix<double>& grad_u,
   const DenseMatrix<double>& grad_w )const
   {
@@ -274,10 +274,10 @@ const unsigned& boundary_number, const PressureFctPt& u)=0;
  ///Access function to the Poisson ratio (const version)
  const double& get_nu() const {return *Nu_pt;}
 
- // Get the kth dof type at internal point l
+ /// Get the kth dof type at internal point l
  virtual double get_w_bubble_dof(const unsigned& l, const unsigned& k) const =0;
 
- // Get the kth equation at internal point l
+ /// Get the kth equation at internal point l
  virtual int local_w_bubble_equation(const unsigned& l, const unsigned& k)
    const =0;
 
