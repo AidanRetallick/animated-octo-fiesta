@@ -50,6 +50,7 @@ namespace oomph
 /// This contains the generic maths. Shape functions, geometric
 /// mapping etc. must get implemented in derived class.
 //=============================================================
+//HERE should we get rid of DIM as template? Seems misleading
 template <unsigned DIM, unsigned NNODE_1D>
 class FoepplVonKarmanEquations : public virtual TElement<DIM,NNODE_1D>
 {
@@ -86,6 +87,9 @@ const unsigned& boundary_number, const PressureFctPt& w)=0;
  virtual void fix_in_plane_displacement_dof(const unsigned& dof_number,
 const unsigned& boundary_number, const PressureFctPt& u)=0;
  // NB do we need this?
+ 
+ /// \short (Read only) Access to number of internal dofs
+ unsigned number_of_internal_dofs() const {return this->Number_of_internal_dofs;}
 
  /// \short (pure virtual) function that precomputes association matrix between
  /// the basis functions of the basic element and the physical element.
@@ -212,10 +216,10 @@ const unsigned& boundary_number, const PressureFctPt& u)=0;
    // Poisson ratio
    double nu(get_nu());
    // Truncated Green Lagrange strain tensor
-   DenseMatrix<double> epsilon(2,2,0.0);
-   for(unsigned alpha=0;alpha<2;++alpha)
+   DenseMatrix<double> epsilon(DIM,DIM,0.0);
+   for(unsigned alpha=0;alpha<DIM;++alpha)
     {
-     for(unsigned beta=0;beta<2;++beta)
+     for(unsigned beta=0;beta<DIM;++beta)
       {
        // Truncated Green Lagrange strain tensor
        epsilon(alpha,beta) += 0.5* grad_u(alpha,beta) + 0.5*grad_u(beta,alpha)
@@ -224,9 +228,9 @@ const unsigned& boundary_number, const PressureFctPt& u)=0;
     }
    
    // Now construct the Stress
-   for(unsigned alpha=0;alpha<2;++alpha)
+   for(unsigned alpha=0;alpha<DIM;++alpha)
     {
-     for(unsigned beta=0;beta<2;++beta)
+     for(unsigned beta=0;beta<DIM;++beta)
       {
        // The Laplacian term: Trace[ \epsilon ] I
        // \nu * \epsilon_{\alpha \beta} delta_{\gamma \gamma}
@@ -308,7 +312,8 @@ const unsigned& boundary_number, const PressureFctPt& u)=0;
                                         const Vector<double>& x,
                                         Vector<double>& pressure) const
   {
-   pressure.resize(2);
+   //In plane is same as DIM of problem (2)
+   pressure.resize(DIM);
    //If no pressure function has been set, return zero
    if(In_plane_forcing_fct_pt==0)
     {
@@ -425,12 +430,18 @@ output_stress_flag=false) const
    {
     for(unsigned k=0;k<n_position_type;k++)
      {
-      interpolated_u[0] += this->nodal_value(l,k+2)*psi(l,k);
-      interpolated_u[1] += this->nodal_value(l,k+2)*dpsi_dxi(l,k,0);
-      interpolated_u[2] += this->nodal_value(l,k+2)*dpsi_dxi(l,k,1);
-      interpolated_u[3] += this->nodal_value(l,k+2)*d2psi_dxi2(l,k,0);
-      interpolated_u[4] += this->nodal_value(l,k+2)*d2psi_dxi2(l,k,1);
-      interpolated_u[5] += this->nodal_value(l,k+2)*d2psi_dxi2(l,k,2);
+     // u_3
+     interpolated_u[0] += this->nodal_value(l,k+2)*psi(l,k);
+     // d_u_3_dx_alpha
+     for(unsigned alpha=0;alpha<DIM;++alpha)
+      {interpolated_u[1+alpha] += this->nodal_value(l,k+2)*dpsi_dxi(l,k,alpha);}
+     // d2_u_3_dx_alpha dx_beta
+     // HERE this will only work for DIM = 2
+     for(unsigned alphabeta=0;alphabeta<DIM+1;++alphabeta)
+      {
+      interpolated_u[3+alphabeta] += this->nodal_value(l,k+2)
+         *d2psi_dxi2(l,k,alphabeta);
+      }
      }
    }
 
@@ -440,12 +451,17 @@ output_stress_flag=false) const
     for(unsigned k=0;k<Number_of_internal_dof_types;k++)
      {
       double u_value = get_w_bubble_dof(l,k);
+      // u_3
       interpolated_u[0] += u_value * psi_b(l,k);
-      interpolated_u[1] += u_value*dpsi_b_dxi(l,k,0);
-      interpolated_u[2] += u_value*dpsi_b_dxi(l,k,1);
-      interpolated_u[3] += u_value*d2psi_b_dxi2(l,k,0);
-      interpolated_u[4] += u_value*d2psi_b_dxi2(l,k,1);
-      interpolated_u[5] += u_value*d2psi_b_dxi2(l,k,2);
+      // d_u_3_dx_alpha
+      for(unsigned alpha=0;alpha<DIM;++alpha)
+       { interpolated_u[1+alpha] += u_value*dpsi_b_dxi(l,k,alpha); }
+      // d2_u_3_dx_alpha dx_beta
+      // HERE this will only work for DIM = 2
+     for(unsigned alphabeta=0;alphabeta<DIM+1;++alphabeta)
+      {
+       interpolated_u[3+alphabeta] += u_value*d2psi_b_dxi2(l,k,alphabeta);
+      }
      }
    }
    // Now for the displacement 
@@ -457,7 +473,8 @@ output_stress_flag=false) const
      // IF flag
      if(output_stress_flag)
       {
-       for(unsigned i=0; i<2; ++i)
+       // Also output the in--plane displacement derivatives
+       for(unsigned i=0; i<DIM; ++i)
         {
         interpolated_u[8 +i] += this->nodal_value(l,0)*dpsi_u(l,i);
         interpolated_u[10+i] += this->nodal_value(l,1)*dpsi_u(l,i);
@@ -465,12 +482,12 @@ output_stress_flag=false) const
       }
     }
 
-   // IF flag
+   // IF flag HERE TIDY
    if(output_stress_flag)
     {
      // For stress
      DenseMatrix<double> interpolated_dwdxi(1,DIM,0.0);
-     DenseMatrix<double> interpolated_dudxi(2,DIM,0.0);
+     DenseMatrix<double> interpolated_dudxi(DIM,DIM,0.0);
      interpolated_dwdxi(0,0)=interpolated_u[1];
      interpolated_dwdxi(0,1)=interpolated_u[2];
      interpolated_dudxi(0,0)=interpolated_u[8];
@@ -478,7 +495,7 @@ output_stress_flag=false) const
      interpolated_dudxi(1,0)=interpolated_u[10];
      interpolated_dudxi(1,1)=interpolated_u[11];
      // Get Stress
-     DenseMatrix<double> sigma(2,2,0.0);
+     DenseMatrix<double> sigma(DIM,DIM,0.0);
      get_sigma(sigma,interpolated_dudxi, interpolated_dwdxi);
      interpolated_u[12] = sigma(0,0);
      interpolated_u[13] = sigma(0,1);

@@ -37,6 +37,7 @@
 // The mesh
 #include "meshes/triangle_mesh.h"
 #include "my_geom_object.h"
+#include "my_exact_solutions.h"
 
 using namespace std;
 using namespace oomph;
@@ -82,6 +83,17 @@ double eta = 1;
 double p_mag = 1; 
 double nu = 0.5;
 
+/*                         VALIDATION DEFINITIONS                             */
+// Validation cases as enum
+enum Validation_case {no_validate=-1, one=1, two=2};
+// Case we are choosing
+Validation_case validation_case = no_validate;
+// Classes that contain the two validation solutions
+ManufacturedSolutionWithLinearDisplacements 
+  manufactured_solution_linear_u(&nu,&eta);
+ManufacturedSolutionDecoupledExtension 
+  manufactured_solution_decoupled_extension(&nu,&p_mag);
+
 /*                     PARAMETRIC BOUNDARY DEFINITIONS                        */
 // Here we create the geom objects for the Parametric Boundary Definition 
 CurvilineCircleTop parametric_curve_top;
@@ -116,18 +128,41 @@ void get_normal_and_tangent(const Vector<double>& x, Vector<double>& n,
 // Assigns the value of pressure depending on the position (x,y)
 void get_pressure(const Vector<double>& x, double& pressure)
 {
- pressure = p_mag; //constant pressure - can make a function of x
+ //pressure = p_mag; //constant pressure - can make a function of x
  // NB if you are going to use 1/r make sure to take out internal boundaries
  // Or there will be a div by zero error here
+ 
+ // Dependent on case call the forcing
+ if(validation_case== one)
+  manufactured_solution_linear_u.get_pressure(x,pressure);
+ else if(validation_case== two)
+  manufactured_solution_decoupled_extension.get_pressure(x,pressure);
+ // Default just use a constant force
+ else
+  pressure = p_mag;
 }
 
+// Pressure wrapper so we can output the pressure function
+void get_pressure(const Vector<double>& X, Vector<double>& pressure)
+ {
+  pressure.resize(1);
+  get_pressure(X,pressure[0]);
+ }
+
 // Assigns the value of in plane forcing depending on the position (x,y)
-void get_in_plane_force(const Vector<double>& X, Vector<double>& grad)
-{
- // Return the (constant) pressure
- grad[0] = 0;
- grad[1] = 0;
-}
+void get_in_plane_force(const Vector<double>& x, Vector<double>& grad)
+ {
+ // Dependent on case call the forcing
+ if(validation_case== one)
+  manufactured_solution_linear_u.get_in_plane_force(x,grad);
+ else if(validation_case== two)
+  manufactured_solution_decoupled_extension.get_in_plane_force(x,grad);
+ else
+  {
+  grad[0]=0.0;
+  grad[1]=0.0;
+  }
+ }
 
 // This metric will flag up any non--axisymmetric parts
 void error_metric(const Vector<double>& x, const 
@@ -138,15 +173,56 @@ void error_metric(const Vector<double>& x, const
  norm  = pow( x[0]*u[1] + x[1]*u[2],2) ;
 }
 
-// Get the exact solution to assist in setting b/c's
+// Get the exact solution, complete with radial and azimuthal derivatives
+void get_exact_radial_w(const Vector<double>& x, Vector<double>& exact_w)
+{
+ // u_z and derivatives
+ if(validation_case == one)
+  manufactured_solution_linear_u.exact_radial_w_solution(x,exact_w);
+
+ else if(validation_case == two)
+  manufactured_solution_decoupled_extension.exact_radial_w_solution(x,exact_w);
+
+ else
+  { /* Do Nothing - no exact solution for this case*/}
+}
+
+// Get the exact solution(s)
+void get_exact_w(const Vector<double>& x, Vector<double>& exact_w)
+{
+ // u_z and derivatives
+ if(validation_case == one)
+  manufactured_solution_linear_u.exact_solution(x,exact_w);
+
+ else if(validation_case == two)
+  manufactured_solution_decoupled_extension.exact_solution(x,exact_w);
+ else 
+ {
+  /* Do nothing -> no exact solution in this case */
+ }
+}
+
+// Get the exact u solution (wrapper)
+void get_exact_ux(const Vector<double>& X, double& exact_w)
+{
+ Vector<double> w(8);
+ get_exact_w(X,w);
+ exact_w= w[6];
+}
+
+// Get the exact u solution (wrapper)
+void get_exact_uy(const Vector<double>& X, double& exact_w)
+{
+ Vector<double> w(8);
+ get_exact_w(X,w);
+ exact_w= w[7];
+}
+
+// Get the exact solution
 void get_null_fct(const Vector<double>& X, double& exact_w)
 {
  exact_w = 0.0;
 }
-
-//Dummy exact function - does nothing
-void get_exact_w(const Vector<double>& xi, Vector<double>& w)
- {/*DO NOTHING*/}
 
 }
 
@@ -177,6 +253,104 @@ UnstructuredFvKProblem(double element_area = 0.09);
 /// Update after solve (empty)
 void actions_after_newton_solve()
 {
+}
+
+/// Set the initial values to the exact solution (useful for debugging)
+void set_initial_values_to_exact_solution()
+{
+// Loop over all elements and reset the values
+unsigned n_element = Bulk_mesh_pt->nelement();
+for(unsigned e=0;e<n_element;e++)
+{
+ // Upcast from GeneralisedElement to the present element
+ ELEMENT* el_pt = dynamic_cast<ELEMENT*>(Bulk_mesh_pt->element_pt(e));
+ unsigned nnode = el_pt->nnode();
+ for(unsigned i=0;i<3;++i)
+  {
+   // Containers
+   Vector<double> x(2),w(8,0.0);
+   // Get node pointer
+   Node* nod_pt = el_pt->node_pt(i);
+   // Get x 
+   x[0]=nod_pt->x(0);
+   x[1]=nod_pt->x(1);
+   // Get test
+   TestSoln::get_exact_w(x,w);
+   // Set value
+  for(unsigned l=0 ; l<6;++l)
+   {
+    nod_pt->set_value(2+l,w[l]);
+   }
+  }
+ // Pin in Plane dofs
+ for(unsigned i=0;i<nnode;++i)
+  {
+   // Containers
+   Vector<double> x(2),w(8,0.0);
+   // Get node pointer
+   Node* nod_pt = el_pt->node_pt(i);
+   // Get x 
+   x[0]=nod_pt->x(0);
+   x[1]=nod_pt->x(1);
+   // Get test
+   TestSoln::get_exact_w(x,w);
+   // Set value
+  for(unsigned l=0 ; l<6;++l)
+   {
+    nod_pt->set_value(0,w[6]);
+    nod_pt->set_value(1,w[7]);
+   }
+  }
+  // Pin the internal dofs
+  const unsigned n_internal_dofs = el_pt->number_of_internal_dofs();
+  for(unsigned i=0;i<n_internal_dofs;++i)
+   {
+   // Containers
+   Vector<double> x(2,0.0), s(2,0.0), w(6,0.0);
+   // Get internal data
+   Data* internal_data_pt = el_pt->internal_data_pt(1);
+   el_pt->get_internal_dofs_location(i,s);
+   // Get test
+   el_pt->get_coordinate_x(s,x); 
+   TestSoln::get_exact_radial_w(x,w);
+   // HERE need a function that can give us this lookup
+   internal_data_pt->set_value(i,w[0]);
+   }  
+
+//Just loop over the boundary elements
+unsigned nbound = Outer_boundary1 + 1;
+for(unsigned b=0;b<nbound;b++)
+ {
+ const unsigned nb_element = Bulk_mesh_pt->nboundary_element(b);
+ for(unsigned e=0;e<nb_element;e++)
+  {
+   // Get pointer to bulk element adjacent to b
+   ELEMENT* el_pt = dynamic_cast<ELEMENT*>(
+    Bulk_mesh_pt->boundary_element_pt(b,e));
+   // Loop over vertices of the element (i={0,1,2} always!)
+   for(unsigned i=0;i<3;++i)
+    {
+     Node* nod_pt = el_pt->node_pt(i);
+     // If it is on the bth boundary
+     if(nod_pt -> is_on_boundary(b))
+      {
+       // Set the values of the unknowns that aren't pinned
+       Vector<double> x(2,0.0),w(6,0.0);
+       x[0] = nod_pt->x(0);
+       x[1] = nod_pt->x(1);
+       TestSoln::get_exact_radial_w(x,w);
+       // Just set the nonzero values -> the others are pinned
+       nod_pt->set_value(2+0,w[0]);
+       nod_pt->set_value(2+1,w[1]);
+       nod_pt->set_value(2+2,0.0);
+       nod_pt->set_value(2+3,w[3]);
+       nod_pt->set_value(2+4,0.0);
+       nod_pt->set_value(2+5,0.0);
+      }
+    }
+  }
+ }
+}// End loop over elements
 }
 
 /// Update the problem specs before solve: Re-apply boundary conditions
@@ -435,10 +609,13 @@ for (unsigned inod=0;inod<num_int_nod;inod++)
   // Pin it! It's the centre of the domain!
   // In-plane dofs are always 0 and 1 - on vertex nodes we also have 
   // out-of-plane dofs from 2-7.
-  nod_pt->pin(0);
-  nod_pt->set_value(0,0.0);
-  nod_pt->pin(1);
-  nod_pt->set_value(1,0.0);
+  if(TestSoln::validation_case != TestSoln::one)
+   {
+   nod_pt->pin(0);
+   nod_pt->set_value(0,0.0);
+   nod_pt->pin(1);
+   nod_pt->set_value(1,0.0);
+   }
  }
 }
 
@@ -451,8 +628,9 @@ ELEMENT* el_pt = dynamic_cast<ELEMENT*>(Bulk_mesh_pt->element_pt(e));
 
 //Set the pressure function pointers and the physical constants
 el_pt->pressure_fct_pt() = &TestSoln::get_pressure;
-el_pt->in_plane_forcing_fct_pt() = &TestSoln::get_in_plane_force;   
-el_pt->error_metric_fct_pt() = &TestSoln::error_metric;
+el_pt->in_plane_forcing_fct_pt() = &TestSoln::get_in_plane_force;  
+if(TestSoln::validation_case == TestSoln::no_validate) 
+ el_pt->error_metric_fct_pt() = &TestSoln::error_metric;
 el_pt->nu_pt() = &TestSoln::nu;
 el_pt->eta_pt() = &TestSoln::eta;
 }
@@ -463,6 +641,20 @@ el_pt->eta_pt() = &TestSoln::eta;
 unsigned nbound = Outer_boundary1 + 1;
 for(unsigned b=0;b<nbound;b++)
  {
+  // Local block
+  unsigned num_nod=Bulk_mesh_pt->nboundary_node(b);
+  for(unsigned inod=0;inod<num_nod;++inod)
+  {
+   // First Node pt
+   Node* nod_pt=Bulk_mesh_pt->boundary_node_pt(b,inod);
+   double x = nod_pt->x(0), y = nod_pt->x(1), tol = 1e-13;
+   if((y-1.0)*(y-1.0)< tol &&(x-0.0)*(x-0.0)< tol)//HERE LOCAL TOL
+     {
+      oomph_info<<"Found node: ("<<x<<","<<y<<")\n Pinning to zero."<<std::endl;
+      nod_pt->pin(0);
+      nod_pt->set_value(0,0.0);
+     }
+  }
  const unsigned nb_element = Bulk_mesh_pt->nboundary_element(b);
  for(unsigned e=0;e<nb_element;e++)
   {
@@ -475,6 +667,13 @@ for(unsigned b=0;b<nbound;b++)
    el_pt->fix_out_of_plane_displacement_dof(2+2,b,TestSoln::get_null_fct);
    el_pt->fix_out_of_plane_displacement_dof(2+4,b,TestSoln::get_null_fct);
    el_pt->fix_out_of_plane_displacement_dof(2+5,b,TestSoln::get_null_fct);
+
+   // For one validation case we pin the boundary
+   if(TestSoln::validation_case == TestSoln::one)
+    {
+    el_pt->fix_in_plane_displacement_dof(0,b,TestSoln::get_exact_ux);
+    el_pt->fix_in_plane_displacement_dof(1,b,TestSoln::get_exact_uy);
+    }
   }
  }
 // Loop over flux elements to pass pointer to prescribed traction function
@@ -510,6 +709,11 @@ for(unsigned b=0;b<nbound;b++)
    el_pt->fix_out_of_plane_displacement_dof(2+2,b,TestSoln::get_null_fct);
    el_pt->fix_out_of_plane_displacement_dof(2+4,b,TestSoln::get_null_fct);
    el_pt->fix_out_of_plane_displacement_dof(2+5,b,TestSoln::get_null_fct);
+  if(TestSoln::validation_case == TestSoln::one)
+   {
+   el_pt->fix_in_plane_displacement_dof(0,b,TestSoln::get_exact_ux);
+   el_pt->fix_in_plane_displacement_dof(1,b,TestSoln::get_exact_uy);
+   }
   }
  }
 } // end set bc
@@ -757,10 +961,19 @@ some_file << "TEXT X = 22, Y = 92, CS=FRAME T = \""
 some_file.close();
 
 //  Output exact solution
-sprintf(filename,"%s/axisymmetric_soln%i-%f.dat","RESLT",Doc_info.number()
+sprintf(filename,"%s/exact_soln%i-%f.dat","RESLT",Doc_info.number()
  ,Element_area);
 some_file.open(filename);
 Bulk_mesh_pt->output_fct(some_file,npts,TestSoln::get_exact_w); 
+some_file << "TEXT X = 22, Y = 92, CS=FRAME T = \"" 
+       << comment << "\"\n";
+some_file.close();
+
+//  Output pressure function
+sprintf(filename,"%s/pressure%i-%f.dat","RESLT",Doc_info.number()
+ ,Element_area);
+some_file.open(filename);
+Bulk_mesh_pt->output_fct(some_file,npts,TestSoln::get_pressure); 
 some_file << "TEXT X = 22, Y = 92, CS=FRAME T = \"" 
        << comment << "\"\n";
 some_file.close();
@@ -806,7 +1019,7 @@ for (unsigned r = 0; r < n_region; r++)
  oomph_info << "Absolute norm of computed solution: " << sqrt(dummy_error) 
             << std::endl;
  
- oomph_info << "Norm of computed solution: " << sqrt(dummy_error)
+ oomph_info << "Norm of computed solution: " << sqrt(zero_norm)
             << std::endl;
  
  //Trace_file << TestSoln::p_mag << " " << "\n ";
@@ -827,8 +1040,7 @@ for (unsigned r = 0; r < n_region; r++)
  Vector<double> u_0(12,0.0);
  u_0=dynamic_cast<ELEMENT*>(geom_obj_pt)->interpolated_u_foeppl_von_karman(s);
 
-
- oomph_info << "w in the middle: " << u_0[0] << std::endl;
+ oomph_info << "w in the middle: " <<std::setprecision(15) << u_0[0] << std::endl;
 
  Trace_file << TestSoln::p_mag
             << " " << u_0[0] << '\n';
@@ -930,9 +1142,13 @@ int main(int argc, char **argv)
  CommandLineArgs::doc_specified_flags();
 
  // Problem instance
- UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<2,4,3> >
+ UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<2,4,5> >
    problem(element_area);
-
+ /*
+ // Set the initial values to the exact solution (if one exists) - useful 
+ // for debugging.
+ problem.set_initial_values_to_exact_solution();
+ */
  // Set up some problem paramters
  problem.max_residuals()=1e9;
  problem.max_newton_iterations()=20;

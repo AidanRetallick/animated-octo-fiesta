@@ -66,6 +66,9 @@ b, const DisplacementFctPt& u);
 
  /// \short Return boundary order
  unsigned boundary_order() {return BOUNDARY_ORDER;}
+ 
+ /// \short get the location of the internal dofs
+ inline void get_internal_dofs_location(const unsigned& s, Vector<double>& x) const;
 
  /// \short Function pointer to basis vectors function which sets  basis vectors
  /// b1 and b2 (which are in general functions of x)
@@ -375,6 +378,28 @@ class FaceGeometry<FoepplVonKarmanC1CurvedBellElement<DIM,NNODE_1D,BOUNDARY_ORDE
 ////////////////////////////////////////////////////////////////////////////////
 
 //Inline functions:
+
+//==============================================================================
+/// Get the mapped position in the element. For straight sided elements this is
+/// and affine mapping.
+//==============================================================================
+template <unsigned DIM, unsigned NNODE_1D, unsigned BOUNDARY_ORDER>
+void
+FoepplVonKarmanC1CurvedBellElement<DIM,NNODE_1D,BOUNDARY_ORDER>::
+get_internal_dofs_location(const unsigned& dof, Vector<double>& s) const
+{
+ // If the element has been upgraded
+ if(Curved_edge ==MyC1CurvedElements::none)
+  {
+   throw OomphLibError(
+    "There are no internal dofs for these elements as they have not been\
+upgraded to curved elements.",
+    OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
+  }
+ else 
+  {Curved_shape.get_internal_dofs_location(dof,s);}
+};
+
 //==============================================================================
 /// Get the mapped position in the element. For straight sided elements this is
 /// and affine mapping.
