@@ -9,7 +9,7 @@ for i in `seq 1 6`;
 do
     echo "##########################################"
     echo $circular_cap_fvk "--element_area" $areaprefix$i $arguments 
-    ./$driver_name "--element_area" $areaprefix$i "--nu" "0.0" $arguments | tee RESLT/output$areaprefix$i.txt
+    ./$driver_name "--element_area" $areaprefix$i $arguments | tee RESLT/output$areaprefix$i.txt
 done
 
 # Now grab the data
