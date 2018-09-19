@@ -1,6 +1,6 @@
 # Name of executables: The prefix "noinst" means the executables don't
 # have to be installed anywhere.
-noinst_PROGRAMS =  circular_cap_fvk
+noinst_PROGRAMS =  circular_cap_fvk circular_free_fvk circular_free_simon_fvk
 #---------------------------------------------------------------------------
 
 # Local sources that circular_cap_fvk code depends on:
@@ -9,9 +9,23 @@ circular_cap_fvk_SOURCES = \
  foeppl_von_karman_elements.cc  foeppl_von_karman_curved_bell_elements.cc \
  C1_curved_association_matrix.cc \
  C1_curved_basic_basis.cc C1_curved_elements.cc
+
+circular_free_fvk_SOURCES = \
+ circular_disc_free_foeppl_von_karman.cc MyBellShape.cc \
+ foeppl_von_karman_elements.cc  foeppl_von_karman_curved_bell_elements.cc \
+ C1_curved_association_matrix.cc \
+ C1_curved_basic_basis.cc C1_curved_elements.cc
+
+circular_free_simon_fvk_SOURCES = \
+ circular_disc_free_foeppl_von_karman_simon.cc MyBellShape.cc \
+ foeppl_von_karman_elements.cc  foeppl_von_karman_curved_bell_elements.cc \
+ C1_curved_association_matrix.cc \
+ C1_curved_basic_basis.cc C1_curved_elements.cc
 #---------------------------------------------------------------------------
 
 circular_cap_fvk_LDADD = -L@libdir@ -lgeneric $(EXTERNAL_LIBS) $(FLIBS)
+circular_free_fvk_LDADD = -L@libdir@ -lgeneric $(EXTERNAL_LIBS) $(FLIBS)
+circular_free_simon_fvk_LDADD = -L@libdir@ -lgeneric $(EXTERNAL_LIBS) $(FLIBS)
 
 # Local sources that Jack's own code depends on: This code also uses
 # objects from Jack's own library. The source code for this library
@@ -34,5 +48,5 @@ circular_cap_fvk_LDADD = -L@libdir@ -lgeneric $(EXTERNAL_LIBS) $(FLIBS)
 # Automake will replace the variable @includedir@ with the actual
 # include directory.
 
-AM_CPPFLAGS += -I@includedir@ -I$(pathtoeigen) -I$(pathtospectra) -Wall
-EXTRA_DIST = Circle1.1.ele Circle1.1.node Circle1.1.poly
+AM_CPPFLAGS += -I@includedir@ -I$(pathtoeigen) -I$(pathtospectra) -Wall -g -DRANGE_CHECK -DPARANOID
+#EXTRA_DIST = Circle1.1.ele Circle1.1.node Circle1.1.poly
