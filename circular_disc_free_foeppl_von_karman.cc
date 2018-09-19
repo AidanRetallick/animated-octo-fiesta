@@ -619,14 +619,15 @@ for(unsigned b=0;b<nbound;b++)
       nod_pt->set_value(0,0.0);
      }
   }
+/* // Unused in free case as nothingis pinned 
  const unsigned nb_element = Bulk_mesh_pt->nboundary_element(b);
  for(unsigned e=0;e<nb_element;e++)
   {
    // Get pointer to bulk element adjacent to b
    ELEMENT* el_pt = dynamic_cast<ELEMENT*>(
     Bulk_mesh_pt->boundary_element_pt(b,e));
-   /* Pin Nothing */
-  }
+   // Pin Nothing 
+  }*/
  }
 // Loop over flux elements to pass pointer to prescribed traction function
 
@@ -643,21 +644,21 @@ apply_boundary_conditions();
 template<class ELEMENT>
 void UnstructuredFvKProblem<ELEMENT>::apply_boundary_conditions()
 {
-// Set the boundary conditions
+// Set the boundary condition DO NOTHING in free cases
 //Just loop over outer boundary since inner boundary doesn't have boundary
 //conditions
-unsigned nbound = Outer_boundary1 + 1;
-for(unsigned b=0;b<nbound;b++)
- {
- const unsigned nb_element = Bulk_mesh_pt->nboundary_element(b);
- for(unsigned e=0;e<nb_element;e++)
-  {
-   // Get pointer to bulk element adjacent to b
-   ELEMENT* el_pt = dynamic_cast<ELEMENT*>(
-    Bulk_mesh_pt->boundary_element_pt(b,e));
-   /* Pin nothing */
-  }
- }
+// unsigned nbound = Outer_boundary1 + 1;
+// for(unsigned b=0;b<nbound;b++)
+//  {
+//  const unsigned nb_element = Bulk_mesh_pt->nboundary_element(b);
+//  for(unsigned e=0;e<nb_element;e++)
+//   {
+//    // Get pointer to bulk element adjacent to b
+//    ELEMENT* el_pt = dynamic_cast<ELEMENT*>(
+//     Bulk_mesh_pt->boundary_element_pt(b,e));
+//    /* Pin nothing */
+//   }
+//  }
 } // end set bc
 
 template <class ELEMENT>
