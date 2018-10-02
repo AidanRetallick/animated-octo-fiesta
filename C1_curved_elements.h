@@ -132,6 +132,10 @@ public:
     parametric_edge->position(so,Chi_sobar);
     parametric_edge->dposition(so,D_chi_sobar);
     parametric_edge->d2position(so,D2_chi_sobar);
+    // Check the construction of the elements is complete
+    #ifdef PARANOID
+    self_check();
+    #endif
    } 
   
 
@@ -163,11 +167,29 @@ public:
    {return vertices;}
   /// Get the values of s at start of parametric curve section
   inline const double& get_s_ubar() const
-    {return s_ubar;}
+    {
+     // If we have upgraded
+     if(Curved_edge == none) {return s_ubar;}
+     else {
+     throw OomphLibError(
+     "The element has not been upgraded yet. Did \
+  you forget to set a Curved_edge?",
+  OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
+    }
+    }
 
   /// Get the values of s at end of parametric curve section
   inline const double& get_s_obar() const
-    {return s_obar;}
+   {
+     // If we have upgraded
+     if(Curved_edge == none) {return s_obar;}
+     else {
+     throw OomphLibError(
+     "The element has not been upgraded yet. Did \
+  you forget to set a Curved_edge?",
+  OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
+    }
+   }
 
 /* Disable user access
   /// Reference access to the values of s at start of parametric curve section
@@ -658,6 +680,16 @@ public:
  /// Get the basis functions at local coordinate s
  void shape(const Vector<double>& s, Shape& psi, Shape& bpsi) const
   {
+  // check the construction of the elements is complete
+  #ifdef paranoid
+   if(curved_edge==none)
+    {
+     throw oomphliberror(
+     "the element has not been upgraded yet. did \
+  you forget to set upe the curved_edge?",
+  oomph_current_function, oomph_exception_location);
+    }
+  #endif
    /// Permute the local coordinate 
    Vector<double> s_basic(s); permute_shape(s_basic); 
    shape_basic(s_basic, psi, bpsi);
@@ -666,6 +698,16 @@ public:
  /// Get the local to eulerian Jacobian at local coordinate s (not basic)
  void get_jacobian(const Vector<double>& s, DenseMatrix<double>& jacobian) const
   {
+  // check the construction of the elements is complete
+  #ifdef paranoid
+   if(curved_edge==none)
+    {
+     throw oomphliberror(
+     "the element has not been upgraded yet. did \
+  you forget to set upe the curved_edge?",
+  oomph_current_function, oomph_exception_location);
+    }
+  #endif
    // Permute the local coordinate 
    Vector<double> s_basic(s); permute_shape(s_basic); 
    // Get basic to eulerian jacobian with permuted shape, copy construct 
@@ -700,7 +742,8 @@ protected:
  void d2_shape_ds2(const Vector<double>& s, Shape& psi, Shape& bpsi, DShape& dpsi
    , DShape& dbpsi, DShape& d2psi, DShape& d2bpsi) const; //PRIVATE
 
- ///  Get the local second derivatives of the basis functions
+ /// \short  Get the local second derivatives of the basis functions with 
+ /// precomputed association matrix
  void d2_shape_ds2(const Vector<double>& s, Shape& psi, Shape& bpsi, DShape& dpsi
    , DShape& dbpsi, DShape& d2psi, DShape& d2bpsi, const DenseMatrix<double>& m) const; //PRIVATE
 
@@ -727,6 +770,16 @@ public:
  /// Return the Eulerian coordinate of the ith internal dof.
  void get_internal_dofs_location(const unsigned& idof,Vector<double>& s_permute) const
   {
+  // check the construction of the elements is complete
+  #ifdef paranoid
+   if(curved_edge==none)
+    {
+     throw oomphliberror(
+     "the element has not been upgraded yet. did \
+  you forget to set upe the curved_edge?",
+  oomph_current_function, oomph_exception_location);
+    }
+  #endif
    // Get the shape 
    Vector<double> s_basic(2);
    s_basic[0] = Internal_dof_knots[idof][0]; // HERE RANGE CHECK 

@@ -146,6 +146,16 @@ Vector<double>& fk) const
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::psi_h  (const double& s1, Vector<double>& psih) const
  {
+  // Check the construction of the elements is complete
+  #ifdef PARANOID
+   if(Curved_edge==none)
+    {
+     throw OomphLibError(
+     "The element has not been upgraded yet. Did \
+  you forget to set upe the Curved_edge?",
+  OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
+    }
+  #endif
   // F_k at a point along s0 = 1 -s1
   Vector<double> s(2);
   s[0]=1-s1; s[1]=s1;
@@ -1906,6 +1916,16 @@ template <unsigned BOUNDARY_ORDER>
 double BernadouElementBasis<BOUNDARY_ORDER>::d_shape_dx(const Vector<double>& s, Shape& psi, Shape& bpsi,
  DShape& dpsi, DShape& dbpsi) const
  {
+  // check the construction of the elements is complete
+  #ifdef paranoid
+   if(curved_edge==none)
+    {
+     throw oomphliberror(
+     "the element has not been upgraded yet. did \
+  you forget to set upe the curved_edge?",
+  oomph_current_function, oomph_exception_location);
+    }
+  #endif
   // Handy definitions
   const unsigned ninternal=n_internal_dofs();
 
@@ -2189,7 +2209,17 @@ void BernadouElementBasis<BOUNDARY_ORDER>::d2_shape_ds2(const Vector<double>& s,
 template <unsigned BOUNDARY_ORDER>
 void BernadouElementBasis<BOUNDARY_ORDER>::fill_in_full_association_matrix(DenseMatrix<double>&
 conversion_matrix)
-{
+ {
+  // check the construction of the elements is complete
+  #ifdef paranoid
+   if(curved_edge==none)
+    {
+     throw oomphliberror(
+     "the element has not been upgraded yet. did \
+  you forget to set upe the curved_edge?",
+  oomph_current_function, oomph_exception_location);
+    }
+  #endif
   // Handy definitions
   const unsigned nbasis=n_basis_functions();
   const unsigned nbasic=n_basic_basis_functions();
@@ -2439,6 +2469,16 @@ double BernadouElementBasis<BOUNDARY_ORDER>::d2_shape_dx2(const Vector<double>& 
  DShape& dpsi, DShape& dbpsi, DShape& d2psi, DShape& d2bpsi,
 const DenseMatrix<double>& M) const
  {
+  // check the construction of the elements is complete
+  #ifdef paranoid
+   if(curved_edge==none)
+    {
+     throw oomphliberror(
+     "the element has not been upgraded yet. did \
+  you forget to set upe the curved_edge?",
+  oomph_current_function, oomph_exception_location);
+    }
+  #endif
   // Handy definitions
   const unsigned ninternal=n_internal_dofs();
   // Permute the local coordinate
@@ -2581,6 +2621,16 @@ template <unsigned BOUNDARY_ORDER>
 double BernadouElementBasis<BOUNDARY_ORDER>::d2_shape_dx2(const Vector<double>& s, Shape& psi, Shape& bpsi,
  DShape& dpsi, DShape& dbpsi, DShape& d2psi, DShape& d2bpsi) const
  {
+  // check the construction of the elements is complete
+  #ifdef paranoid
+   if(curved_edge==none)
+    {
+     throw oomphliberror(
+     "the element has not been upgraded yet. did \
+  you forget to set upe the curved_edge?",
+  oomph_current_function, oomph_exception_location);
+    }
+  #endif
   // Handy definitions
   const unsigned ninternal=n_internal_dofs();
 

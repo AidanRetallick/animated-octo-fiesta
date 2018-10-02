@@ -48,10 +48,6 @@ namespace MyC1CurvedElements {
 template <>
 void BernadouElementBasis<3>::monomial_to_basic_matrix(DenseMatrix<double>& A) const
 {
-  // temporary HERE
-  #ifdef PARANOID
-  self_check();
-  #endif
  // The association matrix should be initialised to:
  // DenseMatrix<double> A(36,36,0.0);
  A(0,0)=6496./27.;
