@@ -98,26 +98,54 @@ public:
 
   /// \short Shorthand for a vector of vectors containining the vertices
   typedef Vector<Vector<double> > VertexList;
+
   /// Default Constructor
-  BernadouElementBasis(){}
+  BernadouElementBasis() : Curved_edge(none) {}
+
+  /// Constructor that takes vertices as arguments.
+  BernadouElementBasis(const VertexList& verts)
+    : vertices(verts), Curved_edge(none)
+   {
+   /* NB element cannot do anything if it has no curved edge */
+   }
 
   /// Constructor that takes vertices and start and end parts as arguments.
-  BernadouElementBasis(const VertexList& verts, const double& su, const double&so)
-    : vertices(verts), s_ubar(su), s_obar(so), Curved_edge(none)
+  void upgrade_element(const double& su, const double& so, const Edge& curved_edge,
+    CurvilineGeomObject*& parametric_edge)
    {
-   // HERE Fill in the vectors here - means we only have to calculate them once
-   }
+    // Set up the new curved data for the element
+    s_ubar = su;
+    s_obar = so; 
+    Parametric_curve_pt = parametric_edge;
+    Curved_edge = curved_edge;
+    /// Fill in the function values at vertex 0
+    Chi_subar.resize(2);
+    D_chi_subar.resize(2);
+    D2_chi_subar.resize(2);
+    parametric_edge->position(su,Chi_subar);
+    parametric_edge->dposition(su,D_chi_subar);
+    parametric_edge->d2position(su,D2_chi_subar);
+    /// Fill in the function values at vertex 1
+    Chi_sobar.resize(2);
+    D_chi_sobar.resize(2);
+    D2_chi_sobar.resize(2);
+    parametric_edge->position(so,Chi_sobar);
+    parametric_edge->dposition(so,D_chi_sobar);
+    parametric_edge->d2position(so,D2_chi_sobar);
+   } 
+  
 
   /// Destructor
   ~BernadouElementBasis(){}
 
   /// Check the element
   inline void self_check() const;
-  
+
+/* Disable user access  
   /// Access function
   CurvilineGeomObject*& parametric_curve_pt()
    {return Parametric_curve_pt;}
-
+*/
   /// Read only access (const version)
   const CurvilineGeomObject* parametric_curve_pt() const 
    {return Parametric_curve_pt;}
@@ -133,7 +161,6 @@ public:
   /// Get the vertices const version
   inline VertexList get_vertices() const
    {return vertices;}
-
   /// Get the values of s at start of parametric curve section
   inline const double& get_s_ubar() const
     {return s_ubar;}
@@ -142,7 +169,8 @@ public:
   inline const double& get_s_obar() const
     {return s_obar;}
 
-  /// Rererence access to the values of s at start of parametric curve section
+/* Disable user access
+  /// Reference access to the values of s at start of parametric curve section
   inline double& set_s_ubar()
     {return s_ubar;}
 
@@ -152,24 +180,24 @@ public:
 
   /// Set which edge is curved
   inline void set_edge(const Edge& edge){Curved_edge = edge;}
- 
+*/ 
+
   /// Access by reference which edge is curved (const version)
   inline const Edge& get_edge() const {return Curved_edge;}
-  
+/*  
   /// Access by reference which edge is curved
   inline Edge& get_edge(){return Curved_edge;}
+*/
 
   // Define the curved boundary functions.
   /// The parametric boundary chi(s)
+private:
   inline void chi (const double& s1, Vector<double>& chi) const
    {Parametric_curve_pt->position(s1,chi);}
 
   /// The parametric function in terms of the local coordinate s1
   inline void psi (const double& s1, Vector<double>& psi) const
    {Parametric_curve_pt->position(s_ubar+(s_obar-s_ubar)*s1,psi);}
-
-  /// The approximated (3rd order) polynomial
-  void psi_h  (const double& s1, Vector<double>& psi_h) const;
 
   /// \short The derivative of the parametric representation wrt. parametric 
   // coordinate s : chi'(s)
@@ -184,6 +212,11 @@ public:
   /// \short The derivative of the parametric function wrt. local coordinate s1 
   ///  in terms of the local coordinate s1
   void d_psi  (const double& s1, Vector<double>& d_psi) const;
+
+public:
+  /// The approximated (3rd order) polynomial
+  void psi_h  (const double& s1, Vector<double>& psi_h) const;
+
   
   /// Fill in the full association matrix 
   void fill_in_full_association_matrix(DenseMatrix<double>& conversion_matrix);
@@ -218,6 +251,24 @@ private:
 
  /// Parametric coordinate at vertex 1 (assuming 2 is always curved edge)
  double s_obar;
+
+ /// The function evaluate at vertex 0 (assuming 2 is always curved edge)
+ Vector<double> Chi_subar;
+
+ /// The function evaluate at vertex 1 (assuming 2 is always curved edge)
+ Vector<double> Chi_sobar;
+
+ /// The derivative evaluated at vertex 0 (assuming 2 is always curved edge)
+ Vector<double> D_chi_subar;
+
+ /// The derivative evaluated at vertex 1 (assuming 2 is always curved edge)
+ Vector<double> D_chi_sobar;
+
+ /// The 2nd derivative evaluated at vertex 0 (assuming 2 is always curved edge)
+ Vector<double> D2_chi_subar;
+
+ /// The 2nd derivative evaluated at vertex 1 (assuming 2 is always curved edge)
+ Vector<double> D2_chi_sobar;
 
  /// Whih edge is curved
  Edge Curved_edge;
@@ -280,7 +331,7 @@ protected:
  /// \short Components of the second of the two tangent vectors at node 0 Vector
  /// version  (labelling Ai i in {1,2} anticlockwise)
  inline double A2(const unsigned& i) const 
-  {Vector<double> dchi(2,0.0); d_chi(s_ubar,dchi); return (s_obar - s_ubar)*dchi[i];}
+  {return (s_obar - s_ubar)*D_chi_subar[i];}
 
  /// \short  Vector version of second of the two tangent vectors at node 0 
  /// Vector version  (labelling Ai i in {1,2} anticlockwise)
@@ -290,12 +341,12 @@ protected:
  /// \short void version filling in the second of the two tangent vectors at 
  /// node 0 - vector version  (labelling Ai i in {1,2} anticlockwise)
  inline void A2(Vector<double>& v) const 
-   {d_chi(s_ubar,v); v[0]*=(s_obar - s_ubar); v[1]*=(s_obar - s_ubar); }
+   {v[0]=A2(0); v[1]=A2(1);}
 
  /// \short Components of the first tangent vector at node 1 and (labelling Bi i 
  /// in {1,2} anticlockwise)
  inline double B1(const unsigned& i) const 
-  {Vector<double> dchi(2,0.0); d_chi(s_obar,dchi); return -(s_obar - s_ubar)*dchi[i];}
+  {return -(s_obar - s_ubar)*D_chi_sobar[i];}
 
  /// \short First tangent vector at node 1 and (labelling Bi i in {1,2} 
  /// anticlockwise)
@@ -305,7 +356,7 @@ protected:
  /// \short Fill in first tangent vector at node 1 and (labelling Bi i in {1,2} 
  /// anticlockwise)
  inline void B1(Vector<double>& v) const
-   {d_chi(s_obar,v); v[0]*=-(s_obar - s_ubar); v[1]*=-(s_obar - s_ubar); }
+   {v[0]=B1(0); v[1]=B1(1); }
 
  /// \short Components of the second tangent vector at node 1 and (labelling Bi i 
  /// in {1,2} anticlockwise)
@@ -323,11 +374,12 @@ protected:
 
  /// The vectors of d2_chi defined at node 0
  inline void D1(Vector<double>& v) const
-   {d2_chi(s_ubar,v); v[0]*=pow(s_obar - s_ubar,2); v[1]*=pow(s_obar - s_ubar,2);}
+   {v[0]=pow(s_obar - s_ubar,2)*D2_chi_subar[0]; v[1]=pow(s_obar - s_ubar,2)*D2_chi_subar[1];}
 
  /// The vectors of d2_chi defined at node 1
  inline void D2(Vector<double>& v) const 
-   {d2_chi(s_obar,v); v[0]*=pow(s_obar - s_ubar,2); v[1]*=pow(s_obar - s_ubar,2);}
+   {v[0]=pow(s_obar - s_ubar,2)*D2_chi_sobar[0]; v[1]=pow(s_obar - s_ubar,2)*D2_chi_sobar[1];}
+
 
  /// \short Enumerated type that represents the three potential points along
  ///  a side of the triangle

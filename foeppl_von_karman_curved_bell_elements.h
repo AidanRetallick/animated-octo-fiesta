@@ -458,9 +458,6 @@ Elements.",OOMPH_CURRENT_FUNCTION,  OOMPH_EXCEPTION_LOCATION);
  Bubble_w_internal_index = this->add_internal_data(new Data(Curved_shape.n_internal_dofs()));
 
  // Set up the data of the element
- Curved_shape.parametric_curve_pt() = parametric_edge;
- Curved_shape.set_s_ubar() = s_ubar;
- Curved_shape.set_s_obar() = s_obar;
  typename BernadouElementBasis<BOUNDARY_ORDER>::VertexList  vertices(3,Vector<double>(2,0.0));
  typename BernadouElementBasis<BOUNDARY_ORDER>::VertexList lvertices(3,Vector<double>(2,0.0));
 
@@ -519,8 +516,11 @@ one side defined by a parametric function.", OOMPH_CURRENT_FUNCTION,
   }
  // Add the vertices to make the shape functions fully functional
  Curved_shape.get_vertices() = vertices;
- Curved_shape.get_edge() = curved_edge;
-
+// Curved_shape.set_s_ubar() = s_ubar;
+// Curved_shape.set_s_obar() = s_obar;
+//  Curved_shape.get_edge() = curved_edge;
+//  Curved_shape.parametric_curve_pt() = parametric_edge;
+ Curved_shape.upgrade_element(s_ubar,s_obar,curved_edge,parametric_edge);
  // Now shift the nodes to be consistent with the new vertices
  unsigned n_node=this->nnode();
  // Only do the none--vertex nodes!
