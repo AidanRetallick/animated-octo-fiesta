@@ -119,25 +119,35 @@ inline void invert_three_by_three(const DenseMatrix<double> &jacobian,
                             - jacobian(0,1)*jacobian(1,0))/det;
  }
 
-// Get the (twice) area of the triangle from the vertices
-double get_twice_triangle_area(const Vector<double>& v0, const Vector<double>&
-  v1, const Vector<double>& v2);
+/// Class to contain the Basis polynomials for the Bell element
+class BellElementBasis
+{
+ public:
+ /// Constructor
+ BellElementBasis() {}
 
-// Get outer normal of side between vertices v0 and v1, assumes
-// counter-clockwise triangle vertices.
-Vector<double> get_outer_normal(const Vector<double>& v0, const
- Vector<double>& v1);
-
-/// Basis on a reference element. This follows exactly the notation of M. Okabe
-//  in Comput. Methods Appl. Mech. 117 (1994) 411-421
-void d2_basis(const Vector<double>& s,const Vector<Vector<double> >& v,
-  Shape& psi, DShape& dpsi, DShape& d2psi);
-
-
-/// Basis on a reference element. This follows exactly the notation of M. Okabe
-//  in Comput. Methods Appl. Mech. 117 (1994) 411-421
-double d2_basis_eulerian(const Vector<double>& s,const Vector<Vector<double> >& v,
-  Shape& psi, DShape& dpsi, DShape& d2psi);
+ /// Destructor
+ ~BellElementBasis() {}
+ 
+ /// Get the (twice) area of the triangle from the vertices
+ double get_twice_triangle_area(const Vector<double>& v0, const Vector<double>&
+   v1, const Vector<double>& v2) const;
+ 
+ /// Get outer normal of side between vertices v0 and v1, assumes
+ /// counter-clockwise triangle vertices.
+ Vector<double> get_outer_normal(const Vector<double>& v0, const
+  Vector<double>& v1) const;
+ 
+ /// \short Basis for a Bell  element. This follows exactly the notation of 
+ /// M. Okabe in Comput. Methods Appl. Mech. 117 (1994) 411-421
+ void d2_basis(const Vector<double>& s,const Vector<Vector<double> >& v,
+   Shape& psi, DShape& dpsi, DShape& d2psi) const;
+ 
+ /// \short Explicit basis for a Bell element. This follows exactly the 
+ /// notation of M. Okabe in Comput. Methods Appl. Mech. 117 (1994) 411-421
+ double d2_basis_eulerian(const Vector<double>& s,const Vector<Vector<double> >& v,
+   Shape& psi, DShape& dpsi, DShape& d2psi) const;
+}; // End 
 
 }
 }

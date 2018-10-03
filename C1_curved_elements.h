@@ -34,7 +34,7 @@
 #include "generic/Vector.h"
 #include "generic/shape.h"
 #include "my_geom_object.h"
-#include "MyBellShape.h"
+#include "Bell_element_basis.h"
 
 namespace oomph {
 

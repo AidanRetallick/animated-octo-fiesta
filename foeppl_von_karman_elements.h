@@ -36,7 +36,7 @@
 
 //OOMPH-LIB headers
 #include "generic.h"
-#include "MyBellShape.h"
+#include "Bell_element_basis.h"
 
 
 namespace oomph

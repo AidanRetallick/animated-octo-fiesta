@@ -32,7 +32,7 @@
 #define OOMPH_BIHARMONIC_BELL_ELEMENTS_HEADER
 
 #include "foeppl_von_karman_elements.h"
-#include "MyBellShape.h"
+#include "Bell_element_basis.h"
 
 namespace oomph
 {
@@ -107,6 +107,9 @@ private:
  /// nodes: always the same
  static const unsigned Initial_Nvalue[];
 
+ /// Basis functions
+ MyShape::BellElementBasis Bell_basis;
+
 protected:
  /// A Pointer to the function that sets up the rotated basis at point x
  BasisVectorsFctPt Rotated_basis_fct_pt;
@@ -153,7 +156,7 @@ public:
  /// Biharmonic equations
  FoepplVonKarmanBellElement() :
   FoepplVonKarmanEquations<DIM,NNODE_1D>(), Rotated_basis_fct_pt(0),
-  Nnodes_to_rotate(0)
+  Nnodes_to_rotate(0), Bell_basis()
   {
    this->set_nnodal_position_type(6);
    // Use the higher order integration scheme
@@ -430,9 +433,10 @@ template<unsigned DIM, unsigned NNODE_1D>
    v[inode][1]=nod_pt->x(1);
   }
 
- MyShape::d2_basis_eulerian(s,v,psi,dpsidx,d2psidx);
+ // Get the Bell element basis
+ Bell_basis.d2_basis_eulerian(s,v,psi,dpsidx,d2psidx);
+
  // Loop over nodes with rotated dofs
- // Hierher?
  for(unsigned i=0; i<Nnodes_to_rotate; ++i)
   {
    // Get the nodes
@@ -533,7 +537,8 @@ template<unsigned DIM, unsigned NNODE_1D>
    v[inode][1]=nod_pt->x(1);
   }
 
- MyShape::d2_basis_eulerian(s,v,psi,dpsidx,d2psidx);
+ // Get the Bell element basis
+ Bell_basis.d2_basis_eulerian(s,v,psi,dpsidx,d2psidx);
  // Loop over nodes with rotated dofs
  for(unsigned i=0; i<Nnodes_to_rotate; ++i)
   {
@@ -593,9 +598,10 @@ template<unsigned DIM, unsigned NNODE_1D>
    v[inode][1]=nod_pt->x(1);
   }
 
- MyShape::d2_basis_eulerian(s,v,psi,dpsidx,d2psidx);
- // Loop over nodes with rotated dofs
- // Hierher?
+ // Get the Bell element basis
+ Bell_basis.d2_basis_eulerian(s,v,psi,dpsidx,d2psidx);
+
+ // Loop over nodes with rotated dofs HERE move higher?
  for(unsigned i=0; i<Nnodes_to_rotate; ++i)
   {
    // Get the nodes

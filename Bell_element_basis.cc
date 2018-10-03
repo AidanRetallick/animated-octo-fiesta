@@ -30,23 +30,24 @@
 //oomph-lib headers
 #include "generic/Vector.h"
 #include "generic/shape.h"
+#include "Bell_element_basis.h"
 
 namespace oomph {
 
 namespace MyShape {
 
 
-// Get the (twice) area of the triangle from the vertices
-double get_twice_triangle_area(const Vector<double>& v0, const Vector<double>&
-  v1, const Vector<double>& v2)
+/// Get the (twice) area of the triangle from the vertices
+double BellElementBasis::get_twice_triangle_area(const Vector<double>& v0, 
+  const Vector<double>&  v1, const Vector<double>& v2) const
 {
  return v1[0]*v2[1]-v1[1]*v2[0]+v0[1]*v2[0]-v0[0]*v2[1]+v0[0]*v1[1]-v0[1]*v1[0];
 } 
 
-// Get outer normal of side between vertices v0 and v1, assumes
-// counter-clockwise triangle vertices.
-Vector<double> get_outer_normal(const Vector<double>& v0, const 
- Vector<double>& v1)
+/// Get outer normal of side between vertices v0 and v1, assumes
+/// counter-clockwise triangle vertices.
+Vector<double> BellElementBasis::get_outer_normal(const Vector<double>& v0, const 
+ Vector<double>& v1) const
 { 
  Vector<double> normal(2);
  normal[0] = v1[1]-v0[1];
@@ -55,9 +56,9 @@ Vector<double> get_outer_normal(const Vector<double>& v0, const
 }
 
 /// Basis on a reference element. This follows exactly the notation of M. Okabe
-//  in Comput. Methods Appl. Mech. 117 (1994) 411-421
-void d2_basis(const Vector<double>& s,const Vector<Vector<double> >& v, 
-  Shape& psi, DShape& dpsi, DShape& d2psi)
+///  in Comput. Methods Appl. Mech. 117 (1994) 411-421
+void BellElementBasis::d2_basis(const Vector<double>& s,const Vector<Vector<double> >& v, 
+  Shape& psi, DShape& dpsi, DShape& d2psi) const
 {
  // Area of this triangle
  const double A=get_twice_triangle_area(v[0],v[1],v[2]);
@@ -458,9 +459,9 @@ void d2_basis(const Vector<double>& s,const Vector<Vector<double> >& v,
 
 
 /// Basis on a reference element. This follows exactly the notation of M. Okabe
-//  in Comput. Methods Appl. Mech. 117 (1994) 411-421
-double d2_basis_eulerian(const Vector<double>& s,const Vector<Vector<double> >& v, 
-  Shape& psi, DShape& dpsi, DShape& d2psi)
+///  in Comput. Methods Appl. Mech. 117 (1994) 411-421
+double BellElementBasis::d2_basis_eulerian(const Vector<double>& s, 
+const Vector<Vector<double> >& v,   Shape& psi, DShape& dpsi, DShape& d2psi) const
 {
  // Area of this triangle
  const double A=get_twice_triangle_area(v[0],v[1],v[2]);

@@ -32,7 +32,7 @@
 #define OOMPH_BIHARMONIC_CURVED_BELL_ELEMENTS_HEADER
 
 #include "foeppl_von_karman_elements.h"
-#include "MyBellShape.h"
+#include "Bell_element_basis.h"
 #include "C1_curved_elements.h"
 #include "my_geom_object.h"
 
@@ -177,7 +177,7 @@ public:
  FoepplVonKarmanC1CurvedBellElement() :
   FoepplVonKarmanEquations<DIM,NNODE_1D>(), 
   Curved_edge(MyC1CurvedElements::none),
-  Curved_shape(), Rotated_basis_fct_pt(0),  Nnodes_to_rotate(0)
+  Curved_shape(), Bell_basis(), Rotated_basis_fct_pt(0),  Nnodes_to_rotate(0)
   {
    this->set_nnodal_position_type(6);
    // Add the (zero) bubble dofs
@@ -332,6 +332,9 @@ private:
 
  /// Curved Shape function
  MyC1CurvedElements::BernadouElementBasis<BOUNDARY_ORDER> Curved_shape;
+ 
+ /// Basis functions
+ MyShape::BellElementBasis Bell_basis;
 
  /// A Pointer to the function that sets up the rotated basis at point x
  BasisVectorsFctPt Rotated_basis_fct_pt;
@@ -743,7 +746,8 @@ shape_and_test_foeppl_von_karman(...)", OOMPH_EXCEPTION_LOCATION); // HERE
   { 
   // Get J
   this->J_eulerian1(s);
-  MyShape::d2_basis_eulerian(s,v,psi,dpsidx,d2psidx);
+  // Get the Bell element basis
+  Bell_basis.d2_basis_eulerian(s,v,psi,dpsidx,d2psidx);
   }
  else // i.e if has curved edge
   {Curved_shape.shape(s,psi,psi_b);}
@@ -797,7 +801,7 @@ dshape_and_dtest_foeppl_von_karman(...)",
   { 
   // Get J
   J=this->J_eulerian1(s);
-  MyShape::d2_basis_eulerian(s,v,psi,dpsidx,d2psidx);
+  Bell_basis.d2_basis_eulerian(s,v,psi,dpsidx,d2psidx);
   }
  else // i.e if has curved edge
   {J=Curved_shape.d_shape_dx(s,psi,psi_b,dpsidx,dpsi_b_dx);}
@@ -839,7 +843,7 @@ template <unsigned DIM, unsigned NNODE_1D, unsigned BOUNDARY_ORDER>
   { 
   // Get J
   J=this->J_eulerian1(s);
-  MyShape::d2_basis_eulerian(s,v,psi,dpsidx,d2psidx);
+  Bell_basis.d2_basis_eulerian(s,v,psi,dpsidx,d2psidx);
   }
  else if(this->get_association_matrix_pt() != 0)// i.e if has curved edge and precomputed matrix
   {
