@@ -427,7 +427,8 @@ inline void FoepplVonKarmanC1CurvedBellElement<DIM,NNODE_1D,BOUNDARY_ORDER>::upg
  #ifdef PARANOID
  // When upgrading add to count
  Curved_edge_counter+=1;
- // Check that we haven't upgraded this element already
+ // Check that we haven't upgraded this element already - we should introduce
+ // a new function for this I think.
  if(Curved_edge_counter>1)
   {
    // SCREAM
@@ -435,11 +436,6 @@ inline void FoepplVonKarmanC1CurvedBellElement<DIM,NNODE_1D,BOUNDARY_ORDER>::upg
    "Cannot upgrade more than a single edge to be curved in C1 Curved Bell \
 Elements.",OOMPH_CURRENT_FUNCTION,  OOMPH_EXCEPTION_LOCATION);
   }
-//  // Check if higher order element
-//  if(BOUNDARY_ORDER == 5)
-//   {
-//    // SCREAM
-//   }
  #endif
  using namespace MyC1CurvedElements;
  // Add the curved edge
@@ -478,10 +474,7 @@ one side defined by a parametric function.", OOMPH_CURRENT_FUNCTION,
      OOMPH_EXCEPTION_LOCATION);
    break;
    case zero:
-    // Everything cyclicly permutes
-   //  this->get_x(lvertices[0],vertices[2]);
-   //  this->get_x(lvertices[1],vertices[0]);
-   //  this->get_x(lvertices[2],vertices[1]);
+   // Everything cyclicly permutes
     for(unsigned i=0;i<2;++i)
      {
       vertices[2][i]=this->node_pt(0)->x(i);
@@ -490,10 +483,7 @@ one side defined by a parametric function.", OOMPH_CURRENT_FUNCTION,
      }
    break;
    case one:
-   // // Everything cyclicly permutes
-   // this->get_x(lvertices[1],vertices[2]);
-   // this->get_x(lvertices[2],vertices[0]);
-   // this->get_x(lvertices[0],vertices[1]);
+   // Everything cyclicly permutes
     for(unsigned i=0;i<2;++i)
      {
       vertices[2][i]=this->node_pt(1)->x(i);
@@ -503,9 +493,6 @@ one side defined by a parametric function.", OOMPH_CURRENT_FUNCTION,
    break;
    case two:
    // // Everything is just copied over
-   // this->get_x(lvertices[2],vertices[2]);
-   // this->get_x(lvertices[0],vertices[0]);
-   // this->get_x(lvertices[1],vertices[1]);
     for(unsigned i=0;i<2;++i)
      {
       vertices[2][i]=this->node_pt(2)->x(i);
@@ -515,11 +502,6 @@ one side defined by a parametric function.", OOMPH_CURRENT_FUNCTION,
    break;
   }
  // Add the vertices to make the shape functions fully functional
-//  Curved_shape.get_vertices() = vertices;
-// Curved_shape.set_s_ubar() = s_ubar;
-// Curved_shape.set_s_obar() = s_obar;
-//  Curved_shape.get_edge() = curved_edge;
-//  Curved_shape.parametric_curve_pt() = parametric_edge;
  Curved_shape.upgrade_element(vertices, s_ubar,s_obar,curved_edge,*parametric_edge);
  // Now shift the nodes to be consistent with the new vertices
  unsigned n_node=this->nnode();
