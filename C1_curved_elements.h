@@ -95,7 +95,6 @@ public:
   /// \short typedef for the edge curve
   typedef void (*ParametricCurveFctPt)(const double& s, Vector<double>& param_fct);
 
-
   /// \short Shorthand for a vector of vectors containining the vertices
   typedef Vector<Vector<double> > VertexList;
 
@@ -111,30 +110,29 @@ public:
 
   /// Constructor that takes vertices and start and end parts as arguments.
   void upgrade_element(const double& su, const double& so, const Edge& curved_edge,
-    CurvilineGeomObject*& parametric_edge)
+    const CurvilineGeomObject& parametric_curve)
    {
     // Set up the new curved data for the element
     s_ubar = su;
     s_obar = so; 
-    Parametric_curve_pt = parametric_edge;
     Curved_edge = curved_edge;
     /// Fill in the function values at vertex 0
     Chi_subar.resize(2);
     D_chi_subar.resize(1,2);
     D2_chi_subar.resize(1,2);
-    parametric_edge->position(Vector<double>(1,su),Chi_subar);
-    parametric_edge->dposition(Vector<double>(1,su),D_chi_subar);
-    parametric_edge->d2position(Vector<double>(1,su),D2_chi_subar);
+    parametric_curve.position(Vector<double>(1,su),Chi_subar);
+    parametric_curve.dposition(Vector<double>(1,su),D_chi_subar);
+    parametric_curve.d2position(Vector<double>(1,su),D2_chi_subar);
     /// Fill in the function values at vertex 1
     Chi_sobar.resize(2);
     D_chi_sobar.resize(1,2);
     D2_chi_sobar.resize(1,2);
-    parametric_edge->position(Vector<double>(1,so),Chi_sobar);
-    parametric_edge->dposition(Vector<double>(1,so),D_chi_sobar);
-    parametric_edge->d2position(Vector<double>(1,so),D2_chi_sobar);
+    parametric_curve.position(Vector<double>(1,so),Chi_sobar);
+    parametric_curve.dposition(Vector<double>(1,so),D_chi_sobar);
+    parametric_curve.d2position(Vector<double>(1,so),D2_chi_sobar);
     // Check the construction of the elements is complete
     #ifdef PARANOID
-    self_check();
+    self_check(parametric_curve);
     #endif
    } 
   
@@ -143,20 +141,10 @@ public:
   ~BernadouElementBasis(){}
 
   /// Check the element
-  inline void self_check() const;
-
-/* Disable user access  
-  /// Access function
-  CurvilineGeomObject*& parametric_curve_pt()
-   {return Parametric_curve_pt;}
-*/
-  /// Read only access (const version)
-  const CurvilineGeomObject* parametric_curve_pt() const 
-   {return Parametric_curve_pt;}
+  inline void self_check(const CurvilineGeomObject& parametric_curve) const;
 
   /// Get the physical coordinate
   void coordinate_x(const Vector<double>& s, Vector<double>& fk) const;
-  // {Vector<double> s_basic(s); permute_shape(s_basic); return f_k(s_basic); }
   
   /// Get the vertices
   inline VertexList& get_vertices()
@@ -191,86 +179,38 @@ public:
     }
    }
 
-/* Disable user access
-  /// Reference access to the values of s at start of parametric curve section
-  inline double& set_s_ubar()
-    {return s_ubar;}
-
-  /// Reference access the values of s at end of parametric curve section
-  inline double& set_s_obar()
-    {return s_obar;}
-
-  /// Set which edge is curved
-  inline void set_edge(const Edge& edge){Curved_edge = edge;}
-*/ 
-
-  /// Access by reference which edge is curved (const version)
-  inline const Edge& get_edge() const {return Curved_edge;}
-/*  
-  /// Access by reference which edge is curved
-  inline Edge& get_edge(){return Curved_edge;}
-*/
-
-  // Define the curved boundary functions.
-  /// The parametric boundary chi(s)
-private:
-  inline void chi (const double& s1, Vector<double>& chi) const
-   {Parametric_curve_pt->position(Vector<double>(1,s1),chi);}
-
-  /// The parametric function in terms of the local coordinate s1
-  inline void psi (const double& s1, Vector<double>& psi) const
-   {Parametric_curve_pt->position(Vector<double>(1,s_ubar+(s_obar-s_ubar)*s1),psi);}
-
-  /// \short The derivative of the parametric representation wrt. parametric 
-  // coordinate s : chi'(s)
-  inline void d_chi(const double& s1, Vector<double>& d_chi) const
-   {Parametric_curve_pt->dposition(Vector<double>(1,s1),d_chi);}
-
-  /// \short The 2nd derivative of the parametric representation wrt. parametric 
-  /// coordinate, s : chi'''(s)
-  inline void d2_chi(const double& s1, Vector<double>& d_chi) const
-   {Parametric_curve_pt->d2position(Vector<double>(1,s1),d_chi);}
-
-  /// \short The derivative of the parametric function wrt. local coordinate s1 
-  ///  in terms of the local coordinate s1
-  void d_psi  (const double& s1, Vector<double>& dpsi) const
-   {
-    Parametric_curve_pt->position(Vector<double>(s_ubar+(s_obar-s_ubar)*s1),dpsi);
-    dpsi[0] /= (s_obar-s_ubar); dpsi[1] /= (s_obar-s_ubar);
-   }
-
-public:
   /// The approximated (3rd order) polynomial
   void psi_h  (const double& s1, Vector<double>& psi_h) const;
 
-  
   /// Fill in the full association matrix 
   void fill_in_full_association_matrix(DenseMatrix<double>& conversion_matrix);
 
-protected:
-  /// The mapping F_k - a polynomial degree 3 PRIVATE
-  void f_k (const Vector<double>& s, Vector<double>& fk) const;
+  /// Return the order of the polynomial on the curved boudnary
+  inline unsigned boundary_order() const {return BOUNDARY_ORDER;}
+  
+  /// Return the order of the full basis on the basic triangle
+  inline unsigned basic_basis_order() const {return BOUNDARY_ORDER + 4;}
 
-  /// The basic Jacobian PRIVATE
-  void get_basic_jacobian(const Vector<double> s, DenseMatrix<double>& jac)const;
+  /// Return the number of basis functions on the physical triangle
+  inline unsigned n_basic_basis_functions() const 
+   {return (BOUNDARY_ORDER + 5)*(BOUNDARY_ORDER + 6) / 2;}
 
-  /// \short The Hessian of the global coordinate (of the vector mapping) - like 
-  /// a second order Jacobian.
-  /*        d^2 x_i
-      or:   ----------    (rank 3) with x the global coordinate and s the local.
-            d s_i ds_j                                                        */
-  // PRIVATE
-  void get_basic_hessian(const Vector<double>& s,
-    RankThreeTensor<double>& hess) const;
+  /// Return the number of basis functions on the physical triangle
+  inline unsigned n_basis_functions() const;
 
+  /// Return the number of basis functions on the physical triangle
+  inline unsigned n_internal_dofs() const {return n_basis_functions()-18;}
 
+  /// \short Return the number of linearly dependent midside basic nodes (not 
+  /// including Argyris dofs that are also eliminated). Each has two dofs - a 
+  /// normal and a functional dof.
+  inline unsigned n_basic_midside_nodes() const 
+   {return (n_basic_basis_functions() - n_internal_dofs() - 21)/2;}
+
+// Data is private
 private:
-
  /// The vertices supplied from the element
  VertexList vertices;
-
- /// The parametric curve as a (special type) of geom object
- CurvilineGeomObject* Parametric_curve_pt;
 
  /// Parametric coordinate at vertex 0 (assuming 2 is always curved edge)
  double s_ubar;
@@ -303,6 +243,22 @@ protected:
   /*  Protected member functions:                                             */
   /* These functions are used in the construction of shape - but not intended */
   /* for use at the user end                                                  */
+
+  /// The mapping F_k - a polynomial degree 3 PRIVATE
+  void f_k (const Vector<double>& s, Vector<double>& fk) const;
+
+  /// The basic Jacobian PRIVATE
+  void get_basic_jacobian(const Vector<double> s, DenseMatrix<double>& jac)const;
+
+  /// \short The Hessian of the global coordinate (of the vector mapping) - like 
+  /// a second order Jacobian.
+  /*        d^2 x_i
+      or:   ----------    (rank 3) with x the global coordinate and s the local.
+            d s_i ds_j                                                        */
+  // PRIVATE
+  void get_basic_hessian(const Vector<double>& s,
+    RankThreeTensor<double>& hess) const;
+
   
   /// Get the edge permutation, without the index shift
   inline void permute_shape(Vector<double>& s) const;
@@ -313,30 +269,6 @@ protected:
   /// Get the edge permutation
   inline void nodal_index_shift(unsigned& index_shift) const;
 
-public:
-  /// Return the order of the polynomial on the curved boudnary
-  inline unsigned boundary_order() const {return BOUNDARY_ORDER;}
-  
-  /// Return the order of the full basis on the basic triangle
-  inline unsigned basic_basis_order() const {return BOUNDARY_ORDER + 4;}
-
-  /// Return the number of basis functions on the physical triangle
-  inline unsigned n_basic_basis_functions() const 
-   {return (BOUNDARY_ORDER + 5)*(BOUNDARY_ORDER + 6) / 2;}
-
-  /// Return the number of basis functions on the physical triangle
-  inline unsigned n_basis_functions() const;
-
-  /// Return the number of basis functions on the physical triangle
-  inline unsigned n_internal_dofs() const {return n_basis_functions()-18;}
-
-  /// \short Return the number of linearly dependent midside basic nodes (not 
-  /// including Argyris dofs that are also eliminated). Each has two dofs - a 
-  /// normal and a functional dof.
-  inline unsigned n_basic_midside_nodes() const 
-   {return (n_basic_basis_functions() - n_internal_dofs() - 21)/2;}
-
-protected:
  // These Vectors are used repeatedly in the construction of the shape functions
  // So are inlined.
 
@@ -769,7 +701,7 @@ public:
    s_basic[0] = Internal_dof_knots[idof][0]; // HERE RANGE CHECK 
    s_basic[1] = Internal_dof_knots[idof][1]; // HERE RANGE CHECK 
    permute_shape(s_basic);
-   permute_shape(s_basic);//HAX to permute backward as it is cyclic
+   permute_shape(s_basic);// permute once more, to get -1 as it is cyclic
    // Copy over
    s_permute = s_basic;
   }
@@ -899,7 +831,8 @@ OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
 /// 7. Extra paranoid check to see if ANY of the denominators needed in the 
 ///    construction are zero: these cases should be caught by previous checks.
 template <unsigned BOUNDARY_ORDER>
-void BernadouElementBasis<BOUNDARY_ORDER>::self_check() const
+void BernadouElementBasis<BOUNDARY_ORDER>::self_check(const CurvilineGeomObject& 
+ parametric_curve_pt) const
 {
  // Tolerance as a static member HERE
  const double tol(1e-15),angle_tol(1e-12);
@@ -920,8 +853,8 @@ definitions.", OOMPH_CURRENT_FUNCTION,  OOMPH_EXCEPTION_LOCATION);
  // function
  Vector<Vector<double> > local_vertices(3,Vector<double>(2,0.0));
  Vector<double> vertex_0(2,0.0), vertex_1(2,0.0);
- Parametric_curve_pt->position(Vector<double>(1,s_ubar),vertex_0);
- Parametric_curve_pt->position(Vector<double>(1,s_obar),vertex_1);
+ parametric_curve_pt.position(Vector<double>(1,s_ubar),vertex_0);
+ parametric_curve_pt.position(Vector<double>(1,s_obar),vertex_1);
 
  // Magnitude of the difference
  const double diff0=sqrt(pow(vertex_0[0]-vertices[0][0],2)

@@ -48,10 +48,6 @@ template <>
 void  BernadouElementBasis<3>::full_basic_polynomials(const Vector<double>& s, Shape&
 phi) const
  {
-  // temporary HERE
-  #ifdef PARANOID
-  self_check();
-  #endif
   // This will be replaced eventually - in favour of the explicit shape
   // functions
   // Get the number of basic basis function
@@ -78,10 +74,6 @@ template <>
 void  BernadouElementBasis<3>::dfull_basic_polynomials(const Vector<double>& s, DShape&
 dphi) const
  {
-  // temporary HERE
-  #ifdef PARANOID
-  self_check();
-  #endif
   // This will be replaced eventually - in favour of the explicit shape
   // functions
   // Get the number of basic basis function
@@ -111,10 +103,6 @@ template <>
 void  BernadouElementBasis<3>::d2full_basic_polynomials(const Vector<double>& s, DShape&
 d2phi) const
  {
-  // temporary HERE
-  #ifdef PARANOID
-  self_check();
-  #endif
   // This will be replaced eventually - in favour of the explicit shape
   // functions
   // Get the number of basic basis function
@@ -145,10 +133,6 @@ template <>
 void  BernadouElementBasis<5>::full_basic_polynomials(const Vector<double>& s_basic,
 Shape& phi) const
  {
-  // temporary HERE
-  #ifdef PARANOID
-  self_check();
-  #endif
   // For convenience 
   const double s=s_basic[0], t=s_basic[1];
   // Now fill in (automatically generated code
@@ -456,10 +440,6 @@ t, 2))/125.;
 template <> void  BernadouElementBasis<5>::dfull_basic_polynomials(const Vector<double>&
 s_basic, DShape& dphi) const 
 { 
-  // temporary HERE
-  #ifdef PARANOID
-  self_check();
-  #endif
   // For convenience 
   const double s=s_basic[0], t=s_basic[1];
   // Now fill in (automatically generated code)
@@ -1194,10 +1174,6 @@ t)*pow(s, 2)*(1 - s - 11*t + 9*s*t + 15*pow(t, 2));
 template <> void  BernadouElementBasis<5>::d2full_basic_polynomials(const Vector<double>&
 s_basic, DShape&d2phi) const 
 {
-  // temporary HERE
-  #ifdef PARANOID
-  self_check();
-  #endif
   // For convenience 
   const double s=s_basic[0], t=s_basic[1];
   // Now fill in (automatically generated code)

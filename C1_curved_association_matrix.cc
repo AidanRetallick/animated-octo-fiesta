@@ -551,10 +551,6 @@ void BernadouElementBasis<3>::monomial_to_basic_matrix(DenseMatrix<double>& A) c
  template <>
  void BernadouElementBasis<5>::monomial_to_basic_matrix(DenseMatrix<double>& b2l) const
  {
-   // temporary HERE
-   #ifdef PARANOID
-   self_check();
-   #endif
    // Fill in the entries
    b2l (0, 0) = 1084509/250. ;
    b2l (0, 2) = 62720001/1000. ;
@@ -1864,10 +1860,6 @@ void BernadouElementBasis<3>::monomial_to_basic_matrix(DenseMatrix<double>& A) c
    throw OomphLibError("Not implemented for 3rd order boundaries!",
                        OOMPH_EXCEPTION_LOCATION,
                        OOMPH_CURRENT_FUNCTION);
-   // temporary HERE
-   #ifdef PARANOID
-   self_check();
-   #endif
  }
 
 /// The inverse monomial to basic matrix for elements with 5th order boundary 
@@ -1875,10 +1867,6 @@ void BernadouElementBasis<3>::monomial_to_basic_matrix(DenseMatrix<double>& A) c
 template <>
  void BernadouElementBasis<5>::inverse_monomial_to_basic_matrix(DenseDoubleMatrix& ib2l) const
  {
-   // temporary HERE
-   #ifdef PARANOID
-   self_check();
-   #endif
 
    ib2l (0, 0) = 1 ;
    ib2l (0, 10) = 1 ;
