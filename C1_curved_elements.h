@@ -101,17 +101,13 @@ public:
   /// Default Constructor
   BernadouElementBasis() : Curved_edge(none) {}
 
-  /// Constructor that takes vertices as arguments.
-  BernadouElementBasis(const VertexList& verts)
-    : vertices(verts), Curved_edge(none)
-   {
-   /* NB element cannot do anything if it has no curved edge */
-   }
-
   /// Constructor that takes vertices and start and end parts as arguments.
-  void upgrade_element(const double& su, const double& so, const Edge& curved_edge,
+  void upgrade_element(const VertexList& verts, const double& su, const double& so, 
+    const Edge& curved_edge,
     const CurvilineGeomObject& parametric_curve)
    {
+    // Store vertices
+    vertices=verts; 
     // Set up the new curved data for the element
     s_ubar = su;
     s_obar = so; 
@@ -146,13 +142,10 @@ public:
   /// Get the physical coordinate
   void coordinate_x(const Vector<double>& s, Vector<double>& fk) const;
   
-  /// Get the vertices
-  inline VertexList& get_vertices()
-   {return vertices;}
-
   /// Get the vertices const version
   inline VertexList get_vertices() const
    {return vertices;}
+
   /// Get the values of s at start of parametric curve section
   inline const double& get_s_ubar() const
     {

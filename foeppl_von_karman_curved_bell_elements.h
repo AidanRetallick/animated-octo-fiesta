@@ -515,12 +515,12 @@ one side defined by a parametric function.", OOMPH_CURRENT_FUNCTION,
    break;
   }
  // Add the vertices to make the shape functions fully functional
- Curved_shape.get_vertices() = vertices;
+//  Curved_shape.get_vertices() = vertices;
 // Curved_shape.set_s_ubar() = s_ubar;
 // Curved_shape.set_s_obar() = s_obar;
 //  Curved_shape.get_edge() = curved_edge;
 //  Curved_shape.parametric_curve_pt() = parametric_edge;
- Curved_shape.upgrade_element(s_ubar,s_obar,curved_edge,*parametric_edge);
+ Curved_shape.upgrade_element(vertices, s_ubar,s_obar,curved_edge,*parametric_edge);
  // Now shift the nodes to be consistent with the new vertices
  unsigned n_node=this->nnode();
  // Only do the none--vertex nodes!
