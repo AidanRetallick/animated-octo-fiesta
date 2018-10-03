@@ -41,7 +41,7 @@ namespace oomph
 /// \short Specialisation of GeomObject that has a scalar parametric zeta and 
 /// a 2D vector r coordinate r = (r_1(zeta),r_2(zeta)). 
 /// This is suitable for use in meshing/construction of planar objects.
-class CurvilineGeomObject : GeomObject
+class CurvilineGeomObject : public GeomObject
 
 {
 public:
@@ -74,22 +74,8 @@ public:
  /// (Empty) destructor
  virtual ~CurvilineGeomObject(){}
 
- /// Parametrised position on object at current time: r(zeta).
- virtual void position(const Vector<double>& zeta, Vector<double>& r) 
-  const 
-  {
-   throw OomphLibError(
-    "You must specify position() with a vector zeta for your own object! \n",
-    OOMPH_CURRENT_FUNCTION,
-    OOMPH_EXCEPTION_LOCATION);
-  }
-
- /// \short Position Vector w.r.t. to zeta: 
- virtual void position(const double& zeta, 
-                        Vector<double> &r) const = 0;
-
  /// \short Derivative of position Vector w.r.t. to zeta: 
- virtual void dposition(const double& zeta, 
+ virtual void dposition(const Vector<double>& zeta, 
                         Vector<double> &drdzeta) const
   {
    throw OomphLibError(
@@ -103,7 +89,7 @@ public:
  /// \f$ \frac{d^2R_i}{d \zeta_\alpha d \zeta_\beta}\f$ = 
  /// ddrdzeta(alpha,beta,i). 
  /// Evaluated at current time.
- virtual void d2position(const double& zeta, 
+ virtual void d2position(const Vector<double>& zeta, 
                          Vector<double> &drdzeta) const
   {
    throw OomphLibError(
@@ -156,34 +142,24 @@ public:
  /// (Empty) destructor
  virtual ~CurvilineCircleTop(){}
 
- /// Parametrised position on object at current time: r(zeta).
- virtual void position(const Vector<double>& zeta, Vector<double>& r) 
-  const 
-  {
-   throw OomphLibError(
-    "You must specify position() with a vector zeta for your own object! \n",
-    OOMPH_CURRENT_FUNCTION,
-    OOMPH_EXCEPTION_LOCATION);
-  }
-
  /// \short Position Vector w.r.t. to zeta: 
- virtual void position(const double& zeta, 
+ virtual void position(const Vector<double>& zeta, 
                         Vector<double> &r) const
-  { r[0] =-std::sin(zeta);  r[1] = std::cos(zeta);}
+  { r[0] =-std::sin(zeta[0]);  r[1] = std::cos(zeta[0]);}
 
  /// \short Derivative of position Vector w.r.t. to zeta: 
- virtual void dposition(const double& zeta, 
+ virtual void dposition(const Vector<double>& zeta, 
                         Vector<double> &drdzeta) const
-  { drdzeta[0] =-std::cos(zeta);  drdzeta[1] =-std::sin(zeta);}
+  { drdzeta[0] =-std::cos(zeta[0]);  drdzeta[1] =-std::sin(zeta[0]);}
 
 
  /// \short 2nd derivative of position Vector w.r.t. to coordinates: 
  /// \f$ \frac{d^2R_i}{d \zeta_\alpha d \zeta_\beta}\f$ = 
  /// ddrdzeta(alpha,beta,i). 
  /// Evaluated at current time.
- virtual void d2position(const double& zeta, 
+ virtual void d2position(const Vector<double>& zeta, 
                          Vector<double> &drdzeta) const
-  { drdzeta[0] = std::sin(zeta);  drdzeta[1] =-std::cos(zeta);}
+  { drdzeta[0] = std::sin(zeta[0]);  drdzeta[1] =-std::cos(zeta[0]);}
 
  /// Get s from x for part 0 of the boundary (inverse mapping - for convenience)
  double get_zeta(const Vector<double>& x)
@@ -227,34 +203,24 @@ public:
  /// (Empty) destructor
  virtual ~CurvilineCircleBottom(){}
 
- /// Parametrised position on object at current time: r(zeta).
- virtual void position(const Vector<double>& zeta, Vector<double>& r) 
-  const 
-  {
-   throw OomphLibError(
-    "You must specify position() with a vector zeta for your own object! \n",
-    OOMPH_CURRENT_FUNCTION,
-    OOMPH_EXCEPTION_LOCATION);
-  }
-
  /// \short Position Vector w.r.t. to zeta: 
- virtual void position(const double& zeta, 
+ virtual void position(const Vector<double>& zeta, 
                         Vector<double> &r) const
-  { r[0] = std::sin(zeta);  r[1] =-std::cos(zeta);}
+  { r[0] = std::sin(zeta[0]);  r[1] =-std::cos(zeta[0]);}
 
  /// \short Derivative of position Vector w.r.t. to zeta: 
- virtual void dposition(const double& zeta, 
+ virtual void dposition(const Vector<double>& zeta, 
                         Vector<double> &drdzeta) const
-  { drdzeta[0] = std::cos(zeta);  drdzeta[1] = std::sin(zeta);}
+  { drdzeta[0] = std::cos(zeta[0]);  drdzeta[1] = std::sin(zeta[0]);}
 
 
  /// \short 2nd derivative of position Vector w.r.t. to coordinates: 
  /// \f$ \frac{d^2R_i}{d \zeta_\alpha d \zeta_\beta}\f$ = 
  /// ddrdzeta(alpha,beta,i). 
  /// Evaluated at current time.
- virtual void d2position(const double& zeta, 
+ virtual void d2position(const Vector<double>& zeta, 
                          Vector<double> &drdzeta) const
-  { drdzeta[0] =-std::sin(zeta);  drdzeta[1] = std::cos(zeta);}
+  { drdzeta[0] =-std::sin(zeta[0]);  drdzeta[1] = std::cos(zeta[0]);}
 
  /// Get s from x for part 0 of the boundary (inverse mapping - for convenience)
  double get_zeta(const Vector<double>& x)

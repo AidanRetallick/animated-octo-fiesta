@@ -162,17 +162,6 @@ void BernadouElementBasis<BOUNDARY_ORDER>::psi_h  (const double& s1, Vector<doub
   f_k(s,psih);
  }
 
-/// Get the derivative, psi'(x2)
-template <unsigned BOUNDARY_ORDER>
-void BernadouElementBasis<BOUNDARY_ORDER>::d_psi(const double& s1, Vector<double>& dpsi) const
- {
-  const double s=(s_ubar+(s_obar-s_ubar)*s1);
-  Parametric_curve_pt->position(s,dpsi);
-  // Now scale chi to give d_psi
-  for(unsigned i=0;i<2;++i)
-   {dpsi[i]*=(s_obar-s_ubar);}
- }
-
 /// The Jacobian of the mapping from basic to global
 template <>
 void BernadouElementBasis<3>::get_basic_jacobian(const Vector<double> s,

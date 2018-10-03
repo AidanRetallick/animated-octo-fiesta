@@ -120,18 +120,18 @@ public:
     Curved_edge = curved_edge;
     /// Fill in the function values at vertex 0
     Chi_subar.resize(2);
-    D_chi_subar.resize(2);
-    D2_chi_subar.resize(2);
-    parametric_edge->position(su,Chi_subar);
-    parametric_edge->dposition(su,D_chi_subar);
-    parametric_edge->d2position(su,D2_chi_subar);
+    D_chi_subar.resize(1,2);
+    D2_chi_subar.resize(1,2);
+    parametric_edge->position(Vector<double>(1,su),Chi_subar);
+    parametric_edge->dposition(Vector<double>(1,su),D_chi_subar);
+    parametric_edge->d2position(Vector<double>(1,su),D2_chi_subar);
     /// Fill in the function values at vertex 1
     Chi_sobar.resize(2);
-    D_chi_sobar.resize(2);
-    D2_chi_sobar.resize(2);
-    parametric_edge->position(so,Chi_sobar);
-    parametric_edge->dposition(so,D_chi_sobar);
-    parametric_edge->d2position(so,D2_chi_sobar);
+    D_chi_sobar.resize(1,2);
+    D2_chi_sobar.resize(1,2);
+    parametric_edge->position(Vector<double>(1,so),Chi_sobar);
+    parametric_edge->dposition(Vector<double>(1,so),D_chi_sobar);
+    parametric_edge->d2position(Vector<double>(1,so),D2_chi_sobar);
     // Check the construction of the elements is complete
     #ifdef PARANOID
     self_check();
@@ -215,25 +215,29 @@ public:
   /// The parametric boundary chi(s)
 private:
   inline void chi (const double& s1, Vector<double>& chi) const
-   {Parametric_curve_pt->position(s1,chi);}
+   {Parametric_curve_pt->position(Vector<double>(1,s1),chi);}
 
   /// The parametric function in terms of the local coordinate s1
   inline void psi (const double& s1, Vector<double>& psi) const
-   {Parametric_curve_pt->position(s_ubar+(s_obar-s_ubar)*s1,psi);}
+   {Parametric_curve_pt->position(Vector<double>(1,s_ubar+(s_obar-s_ubar)*s1),psi);}
 
   /// \short The derivative of the parametric representation wrt. parametric 
   // coordinate s : chi'(s)
   inline void d_chi(const double& s1, Vector<double>& d_chi) const
-   {Parametric_curve_pt->dposition(s1,d_chi);}
+   {Parametric_curve_pt->dposition(Vector<double>(1,s1),d_chi);}
 
   /// \short The 2nd derivative of the parametric representation wrt. parametric 
   /// coordinate, s : chi'''(s)
   inline void d2_chi(const double& s1, Vector<double>& d_chi) const
-   {Parametric_curve_pt->d2position(s1,d_chi);}
+   {Parametric_curve_pt->d2position(Vector<double>(1,s1),d_chi);}
 
   /// \short The derivative of the parametric function wrt. local coordinate s1 
   ///  in terms of the local coordinate s1
-  void d_psi  (const double& s1, Vector<double>& d_psi) const;
+  void d_psi  (const double& s1, Vector<double>& dpsi) const
+   {
+    Parametric_curve_pt->position(Vector<double>(s_ubar+(s_obar-s_ubar)*s1),dpsi);
+    dpsi[0] /= (s_obar-s_ubar); dpsi[1] /= (s_obar-s_ubar);
+   }
 
 public:
   /// The approximated (3rd order) polynomial
@@ -340,11 +344,6 @@ protected:
  /// version  (labelling Ai i in {1,2} anticlockwise)
  inline double A1(const unsigned& i) const {return vertices[2][i]-vertices[0][i];}
 
- /// \short Vector version of first of the two tangent vectors at node 0 Vector
- /// version  (labelling Ai i in {1,2} anticlockwise)
- inline Vector<double> A1() const
- {Vector<double> v(2,0.0); v[0]=A1(0); v[1]=A1(1); return v;}
-
  /// \short void version filling in the first of the two tangent vectors at node
  ///  0 Vector version  (labelling Ai i in {1,2} anticlockwise)
  inline void A1(Vector<double>& v) const
@@ -354,11 +353,6 @@ protected:
  /// version  (labelling Ai i in {1,2} anticlockwise)
  inline double A2(const unsigned& i) const 
   {return (s_obar - s_ubar)*D_chi_subar[i];}
-
- /// \short  Vector version of second of the two tangent vectors at node 0 
- /// Vector version  (labelling Ai i in {1,2} anticlockwise)
- inline Vector<double> A2() const
-  {Vector<double> v(2,0.0); v[0]=A2(0); v[1]=A2(1); return v;}
 
  /// \short void version filling in the second of the two tangent vectors at 
  /// node 0 - vector version  (labelling Ai i in {1,2} anticlockwise)
@@ -370,11 +364,6 @@ protected:
  inline double B1(const unsigned& i) const 
   {return -(s_obar - s_ubar)*D_chi_sobar[i];}
 
- /// \short First tangent vector at node 1 and (labelling Bi i in {1,2} 
- /// anticlockwise)
- inline Vector<double> B1() const
- {Vector<double> v(2,0.0); v[0]=B1(0); v[1]=B1(1); return v;}
-
  /// \short Fill in first tangent vector at node 1 and (labelling Bi i in {1,2} 
  /// anticlockwise)
  inline void B1(Vector<double>& v) const
@@ -383,11 +372,6 @@ protected:
  /// \short Components of the second tangent vector at node 1 and (labelling Bi i 
  /// in {1,2} anticlockwise)
  inline double B2(const unsigned& i) const {return  (vertices[2][i]-vertices[1][i]);}
-
- /// \short Second tangent vector at node 1 and (labelling Bi i in {1,2} 
- /// anticlockwise)
- Vector<double> B2() const
-   {Vector<double> v(2,0.0); v[0]=B2(0); v[1]=B2(1); return v;}
 
  /// \short Fill in second tangent vector at node 1 and (labelling Bi i in {1,2} 
  /// anticlockwise)
@@ -936,8 +920,8 @@ definitions.", OOMPH_CURRENT_FUNCTION,  OOMPH_EXCEPTION_LOCATION);
  // function
  Vector<Vector<double> > local_vertices(3,Vector<double>(2,0.0));
  Vector<double> vertex_0(2,0.0), vertex_1(2,0.0);
- Parametric_curve_pt->position(s_ubar,vertex_0);
- Parametric_curve_pt->position(s_obar,vertex_1);
+ Parametric_curve_pt->position(Vector<double>(1,s_ubar),vertex_0);
+ Parametric_curve_pt->position(Vector<double>(1,s_obar),vertex_1);
 
  // Magnitude of the difference
  const double diff0=sqrt(pow(vertex_0[0]-vertices[0][0],2)
