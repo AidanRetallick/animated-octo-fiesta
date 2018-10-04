@@ -5,19 +5,19 @@ noinst_PROGRAMS =  circular_cap_fvk circular_free_fvk circular_free_simon_fvk
 
 # Local sources that circular_cap_fvk code depends on:
 circular_cap_fvk_SOURCES = \
- circular_disc_uniform_pressure_foeppl_von_karman.cc MyBellShape.cc \
+ circular_disc_uniform_pressure_foeppl_von_karman.cc Bell_element_basis.cc \
  foeppl_von_karman_elements.cc  foeppl_von_karman_curved_bell_elements.cc \
  C1_curved_association_matrix.cc \
  C1_curved_basic_basis.cc C1_curved_elements.cc
 
 circular_free_fvk_SOURCES = \
- circular_disc_free_foeppl_von_karman.cc MyBellShape.cc \
+ circular_disc_free_foeppl_von_karman.cc Bell_element_basis.cc \
  foeppl_von_karman_elements.cc  foeppl_von_karman_curved_bell_elements.cc \
  C1_curved_association_matrix.cc \
  C1_curved_basic_basis.cc C1_curved_elements.cc
 
 circular_free_simon_fvk_SOURCES = \
- circular_disc_free_foeppl_von_karman_simon.cc MyBellShape.cc \
+ circular_disc_free_foeppl_von_karman_simon.cc Bell_element_basis.cc \
  foeppl_von_karman_elements.cc  foeppl_von_karman_curved_bell_elements.cc \
  C1_curved_association_matrix.cc \
  C1_curved_basic_basis.cc C1_curved_elements.cc

@@ -88,7 +88,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-noinst_PROGRAMS = circular_cap_fvk$(EXEEXT)
+noinst_PROGRAMS = circular_cap_fvk$(EXEEXT) circular_free_fvk$(EXEEXT) \
+	circular_free_simon_fvk$(EXEEXT)
 subdir = user_drivers/animated-octo-fiesta
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/config/configure.ac_scripts/automake_init_command_file \
@@ -104,7 +105,8 @@ CONFIG_CLEAN_VPATH_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
 am_circular_cap_fvk_OBJECTS =  \
 	circular_disc_uniform_pressure_foeppl_von_karman.$(OBJEXT) \
-	MyBellShape.$(OBJEXT) foeppl_von_karman_elements.$(OBJEXT) \
+	Bell_element_basis.$(OBJEXT) \
+	foeppl_von_karman_elements.$(OBJEXT) \
 	foeppl_von_karman_curved_bell_elements.$(OBJEXT) \
 	C1_curved_association_matrix.$(OBJEXT) \
 	C1_curved_basic_basis.$(OBJEXT) C1_curved_elements.$(OBJEXT)
@@ -116,6 +118,27 @@ AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+am_circular_free_fvk_OBJECTS =  \
+	circular_disc_free_foeppl_von_karman.$(OBJEXT) \
+	Bell_element_basis.$(OBJEXT) \
+	foeppl_von_karman_elements.$(OBJEXT) \
+	foeppl_von_karman_curved_bell_elements.$(OBJEXT) \
+	C1_curved_association_matrix.$(OBJEXT) \
+	C1_curved_basic_basis.$(OBJEXT) C1_curved_elements.$(OBJEXT)
+circular_free_fvk_OBJECTS = $(am_circular_free_fvk_OBJECTS)
+circular_free_fvk_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
+am_circular_free_simon_fvk_OBJECTS =  \
+	circular_disc_free_foeppl_von_karman_simon.$(OBJEXT) \
+	Bell_element_basis.$(OBJEXT) \
+	foeppl_von_karman_elements.$(OBJEXT) \
+	foeppl_von_karman_curved_bell_elements.$(OBJEXT) \
+	C1_curved_association_matrix.$(OBJEXT) \
+	C1_curved_basic_basis.$(OBJEXT) C1_curved_elements.$(OBJEXT)
+circular_free_simon_fvk_OBJECTS =  \
+	$(am_circular_free_simon_fvk_OBJECTS)
+circular_free_simon_fvk_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -149,8 +172,11 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(circular_cap_fvk_SOURCES)
-DIST_SOURCES = $(circular_cap_fvk_SOURCES)
+SOURCES = $(circular_cap_fvk_SOURCES) $(circular_free_fvk_SOURCES) \
+	$(circular_free_simon_fvk_SOURCES)
+DIST_SOURCES = $(circular_cap_fvk_SOURCES) \
+	$(circular_free_fvk_SOURCES) \
+	$(circular_free_simon_fvk_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -175,7 +201,8 @@ am__define_uniq_tagged_files = \
   done | $(am__uniquify_input)`
 ETAGS = etags
 CTAGS = ctags
-am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/depcomp
+am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/depcomp AUTHORS \
+	COPYING
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -200,7 +227,7 @@ AMTAR = @AMTAR@
 # Automake will replace the variable @includedir@ with the actual
 # include directory.
 AM_CPPFLAGS = @AM_CPPFLAGS@ -I@includedir@ -I$(pathtoeigen) \
-	-I$(pathtospectra) -Wall
+	-I$(pathtospectra) -Wall -g -DRANGE_CHECK -DPARANOID
 AM_CXXFLAGS = @AM_CXXFLAGS@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AM_FFLAGS = @AM_FFLAGS@
@@ -367,14 +394,27 @@ top_srcdir = @top_srcdir@
 
 # Local sources that circular_cap_fvk code depends on:
 circular_cap_fvk_SOURCES = \
- circular_disc_uniform_pressure_foeppl_von_karman.cc MyBellShape.cc \
+ circular_disc_uniform_pressure_foeppl_von_karman.cc Bell_element_basis.cc \
+ foeppl_von_karman_elements.cc  foeppl_von_karman_curved_bell_elements.cc \
+ C1_curved_association_matrix.cc \
+ C1_curved_basic_basis.cc C1_curved_elements.cc
+
+circular_free_fvk_SOURCES = \
+ circular_disc_free_foeppl_von_karman.cc Bell_element_basis.cc \
+ foeppl_von_karman_elements.cc  foeppl_von_karman_curved_bell_elements.cc \
+ C1_curved_association_matrix.cc \
+ C1_curved_basic_basis.cc C1_curved_elements.cc
+
+circular_free_simon_fvk_SOURCES = \
+ circular_disc_free_foeppl_von_karman_simon.cc Bell_element_basis.cc \
  foeppl_von_karman_elements.cc  foeppl_von_karman_curved_bell_elements.cc \
  C1_curved_association_matrix.cc \
  C1_curved_basic_basis.cc C1_curved_elements.cc
 
 #---------------------------------------------------------------------------
 circular_cap_fvk_LDADD = -L@libdir@ -lgeneric $(EXTERNAL_LIBS) $(FLIBS)
-EXTRA_DIST = Circle1.1.ele Circle1.1.node Circle1.1.poly
+circular_free_fvk_LDADD = -L@libdir@ -lgeneric $(EXTERNAL_LIBS) $(FLIBS)
+circular_free_simon_fvk_LDADD = -L@libdir@ -lgeneric $(EXTERNAL_LIBS) $(FLIBS)
 all: all-am
 
 .SUFFIXES:
@@ -422,16 +462,26 @@ circular_cap_fvk$(EXEEXT): $(circular_cap_fvk_OBJECTS) $(circular_cap_fvk_DEPEND
 	@rm -f circular_cap_fvk$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(circular_cap_fvk_OBJECTS) $(circular_cap_fvk_LDADD) $(LIBS)
 
+circular_free_fvk$(EXEEXT): $(circular_free_fvk_OBJECTS) $(circular_free_fvk_DEPENDENCIES) $(EXTRA_circular_free_fvk_DEPENDENCIES) 
+	@rm -f circular_free_fvk$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(circular_free_fvk_OBJECTS) $(circular_free_fvk_LDADD) $(LIBS)
+
+circular_free_simon_fvk$(EXEEXT): $(circular_free_simon_fvk_OBJECTS) $(circular_free_simon_fvk_DEPENDENCIES) $(EXTRA_circular_free_simon_fvk_DEPENDENCIES) 
+	@rm -f circular_free_simon_fvk$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(circular_free_simon_fvk_OBJECTS) $(circular_free_simon_fvk_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Bell_element_basis.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/C1_curved_association_matrix.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/C1_curved_basic_basis.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/C1_curved_elements.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MyBellShape.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/circular_disc_free_foeppl_von_karman.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/circular_disc_free_foeppl_von_karman_simon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/circular_disc_uniform_pressure_foeppl_von_karman.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/foeppl_von_karman_curved_bell_elements.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/foeppl_von_karman_elements.Po@am__quote@
@@ -668,6 +718,7 @@ uninstall-am:
 
 .PRECIOUS: Makefile
 
+#EXTRA_DIST = Circle1.1.ele Circle1.1.node Circle1.1.poly
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
