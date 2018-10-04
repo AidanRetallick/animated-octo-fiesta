@@ -104,12 +104,7 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
 am_circular_cap_fvk_OBJECTS =  \
-	circular_disc_uniform_pressure_foeppl_von_karman.$(OBJEXT) \
-	Bell_element_basis.$(OBJEXT) \
-	foeppl_von_karman_elements.$(OBJEXT) \
-	foeppl_von_karman_curved_bell_elements.$(OBJEXT) \
-	C1_curved_association_matrix.$(OBJEXT) \
-	C1_curved_basic_basis.$(OBJEXT) C1_curved_elements.$(OBJEXT)
+	circular_disc_uniform_pressure_foeppl_von_karman.$(OBJEXT)
 circular_cap_fvk_OBJECTS = $(am_circular_cap_fvk_OBJECTS)
 am__DEPENDENCIES_1 =
 circular_cap_fvk_DEPENDENCIES = $(am__DEPENDENCIES_1) \
@@ -119,22 +114,12 @@ am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
 am_circular_free_fvk_OBJECTS =  \
-	circular_disc_free_foeppl_von_karman.$(OBJEXT) \
-	Bell_element_basis.$(OBJEXT) \
-	foeppl_von_karman_elements.$(OBJEXT) \
-	foeppl_von_karman_curved_bell_elements.$(OBJEXT) \
-	C1_curved_association_matrix.$(OBJEXT) \
-	C1_curved_basic_basis.$(OBJEXT) C1_curved_elements.$(OBJEXT)
+	circular_disc_free_foeppl_von_karman.$(OBJEXT)
 circular_free_fvk_OBJECTS = $(am_circular_free_fvk_OBJECTS)
 circular_free_fvk_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
 am_circular_free_simon_fvk_OBJECTS =  \
-	circular_disc_free_foeppl_von_karman_simon.$(OBJEXT) \
-	Bell_element_basis.$(OBJEXT) \
-	foeppl_von_karman_elements.$(OBJEXT) \
-	foeppl_von_karman_curved_bell_elements.$(OBJEXT) \
-	C1_curved_association_matrix.$(OBJEXT) \
-	C1_curved_basic_basis.$(OBJEXT) C1_curved_elements.$(OBJEXT)
+	circular_disc_free_foeppl_von_karman_simon.$(OBJEXT)
 circular_free_simon_fvk_OBJECTS =  \
 	$(am_circular_free_simon_fvk_OBJECTS)
 circular_free_simon_fvk_DEPENDENCIES = $(am__DEPENDENCIES_1) \
@@ -394,27 +379,25 @@ top_srcdir = @top_srcdir@
 
 # Local sources that circular_cap_fvk code depends on:
 circular_cap_fvk_SOURCES = \
- circular_disc_uniform_pressure_foeppl_von_karman.cc Bell_element_basis.cc \
- foeppl_von_karman_elements.cc  foeppl_von_karman_curved_bell_elements.cc \
- C1_curved_association_matrix.cc \
- C1_curved_basic_basis.cc C1_curved_elements.cc
+ circular_disc_uniform_pressure_foeppl_von_karman.cc
 
 circular_free_fvk_SOURCES = \
- circular_disc_free_foeppl_von_karman.cc Bell_element_basis.cc \
- foeppl_von_karman_elements.cc  foeppl_von_karman_curved_bell_elements.cc \
- C1_curved_association_matrix.cc \
- C1_curved_basic_basis.cc C1_curved_elements.cc
+ circular_disc_free_foeppl_von_karman.cc
 
 circular_free_simon_fvk_SOURCES = \
- circular_disc_free_foeppl_von_karman_simon.cc Bell_element_basis.cc \
- foeppl_von_karman_elements.cc  foeppl_von_karman_curved_bell_elements.cc \
- C1_curved_association_matrix.cc \
- C1_curved_basic_basis.cc C1_curved_elements.cc
+ circular_disc_free_foeppl_von_karman_simon.cc 
+
 
 #---------------------------------------------------------------------------
-circular_cap_fvk_LDADD = -L@libdir@ -lgeneric $(EXTERNAL_LIBS) $(FLIBS)
-circular_free_fvk_LDADD = -L@libdir@ -lgeneric $(EXTERNAL_LIBS) $(FLIBS)
-circular_free_simon_fvk_LDADD = -L@libdir@ -lgeneric $(EXTERNAL_LIBS) $(FLIBS)
+circular_cap_fvk_LDADD = -L@libdir@ -lC1_foeppl_von_karman \
+ -lC1_basis -lgeneric $(EXTERNAL_LIBS) $(FLIBS)
+
+circular_free_fvk_LDADD = -L@libdir@ -lC1_foeppl_von_karman \
+ -lC1_basis -lgeneric $(EXTERNAL_LIBS) $(FLIBS)
+
+circular_free_simon_fvk_LDADD = -L@libdir@ -lC1_foeppl_von_karman \
+ -lC1_basis -lgeneric $(EXTERNAL_LIBS) $(FLIBS)
+
 all: all-am
 
 .SUFFIXES:
@@ -476,15 +459,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Bell_element_basis.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/C1_curved_association_matrix.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/C1_curved_basic_basis.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/C1_curved_elements.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/circular_disc_free_foeppl_von_karman.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/circular_disc_free_foeppl_von_karman_simon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/circular_disc_uniform_pressure_foeppl_von_karman.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/foeppl_von_karman_curved_bell_elements.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/foeppl_von_karman_elements.Po@am__quote@
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

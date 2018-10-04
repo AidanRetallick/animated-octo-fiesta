@@ -32,11 +32,11 @@
 #include "generic.h" 
 
 // The equations
-#include "foeppl_von_karman.h"
+#include "C1_foeppl_von_karman.h"
 
 // The mesh
 #include "meshes/triangle_mesh.h"
-#include "my_geom_object.h"
+#include "C1_basis/my_geom_object.h"
 #include "my_exact_solutions.h"
 
 using namespace std;
