@@ -248,6 +248,15 @@ UnstructuredFvKProblem(double element_area = 0.09);
 {
  delete (Surface_mesh_pt);
  delete (Bulk_mesh_pt);
+ // Clean up memory
+ delete Outer_boundary_pt;
+ delete Outer_boundary_ellipse_pt;
+ delete Outer_curvilinear_boundary_pt[0];
+ delete Outer_curvilinear_boundary_pt[1];
+ delete Inner_open_boundaries_pt[0];
+ delete Inner_open_boundaries_pt[1];
+ delete Boundary2_pt;
+ delete Boundary3_pt;
 };
 
 /// Update after solve (empty)
@@ -373,7 +382,24 @@ return dynamic_cast<TriangleMesh<ELEMENT>*> (Problem::mesh_pt());
 
 /// Doc info object for labeling output
 DocInfo Doc_info;
+
 private:
+
+// Triangle Mesh Parameter Data
+// This is the data used to set-up the mesh, we need to store the pointers
+// HERE otherwise we will not be able to clean up the memory once we have
+// finished the problem.
+Ellipse* Outer_boundary_ellipse_pt; 
+// The outer curves
+Vector<TriangleMeshCurveSection*> Outer_curvilinear_boundary_pt;
+// The Internal curves
+Vector<TriangleMeshOpenCurve *> Inner_open_boundaries_pt;
+// The close outer boundary
+TriangleMeshClosedCurve* Outer_boundary_pt;
+// The first of the internal boundaries
+TriangleMeshPolyLine* Boundary2_pt;
+// The second of the internal boundaries
+TriangleMeshPolyLine* Boundary3_pt;
 
 void actions_after_read_unstructured_meshes()
  {
@@ -454,36 +480,34 @@ Vector<double> posn(2);
 
 double A = 1.0;
 double B = 1.0;
-Ellipse* outer_boundary_ellipse_pt = new Ellipse(A, B);
-
-TriangleMeshClosedCurve* outer_boundary_pt = 0;
-
-Vector<TriangleMeshCurveSection*> outer_curvilinear_boundary_pt(2);
+Outer_boundary_ellipse_pt = new Ellipse(A, B);
 
 //First bit
 double zeta_start = 0.0;
 double zeta_end = MathematicalConstants::Pi;
 unsigned nsegment = (int)(MathematicalConstants::Pi/sqrt(element_area));
-outer_curvilinear_boundary_pt[0] =
-new TriangleMeshCurviLine(outer_boundary_ellipse_pt, zeta_start,
+
+Outer_curvilinear_boundary_pt.resize(2);
+Outer_curvilinear_boundary_pt[0] =
+new TriangleMeshCurviLine(Outer_boundary_ellipse_pt, zeta_start,
 zeta_end, nsegment, Outer_boundary0);
 
 //Second bit
 zeta_start = MathematicalConstants::Pi;
 zeta_end = 2.0*MathematicalConstants::Pi;
 nsegment = (int)(MathematicalConstants::Pi/sqrt(element_area));
-outer_curvilinear_boundary_pt[1] =
-new TriangleMeshCurviLine(outer_boundary_ellipse_pt, zeta_start,
+Outer_curvilinear_boundary_pt[1] =
+new TriangleMeshCurviLine(Outer_boundary_ellipse_pt, zeta_start,
 zeta_end, nsegment, Outer_boundary1);
 
-outer_boundary_pt =
-new TriangleMeshClosedCurve(outer_curvilinear_boundary_pt);
+Outer_boundary_pt =
+new TriangleMeshClosedCurve(Outer_curvilinear_boundary_pt);
 
 // Internal open boundaries
 // Total number of open curves in the domain
 unsigned n_open_curves = 2;
 // We want internal open curves
-Vector<TriangleMeshOpenCurve *> inner_open_boundaries_pt(n_open_curves);
+Inner_open_boundaries_pt.resize(n_open_curves);
 
 // Internal bit - this means we can have a boundary which is just the centre
 // We start by creating the internal boundaries
@@ -497,7 +521,7 @@ Vector<TriangleMeshOpenCurve *> inner_open_boundaries_pt(n_open_curves);
  vertices[1][1] = 0.0;
  unsigned boundary_id = Inner_boundary0;
 
- TriangleMeshPolyLine *boundary2_pt =
+ Boundary2_pt =
    new TriangleMeshPolyLine(vertices, boundary_id);
 // Open Curve 2
  vertices[0][0] = 0.0;
@@ -507,35 +531,35 @@ Vector<TriangleMeshOpenCurve *> inner_open_boundaries_pt(n_open_curves);
  vertices[1][1] = 0.5;
  boundary_id = Inner_boundary1;
 
- TriangleMeshPolyLine *boundary3_pt =
+ Boundary3_pt =
    new TriangleMeshPolyLine(vertices, boundary_id);
 
 // Each internal open curve is defined by a vector of
 // TriangleMeshCurveSection,
 // on this example we only need one curve section for each internal boundary
  Vector<TriangleMeshCurveSection *> internal_curve_section1_pt(1);
- internal_curve_section1_pt[0] = boundary2_pt;
+ internal_curve_section1_pt[0] = Boundary2_pt;
 
  Vector<TriangleMeshCurveSection *> internal_curve_section2_pt(1);
- internal_curve_section2_pt[0] = boundary3_pt;
+ internal_curve_section2_pt[0] = Boundary3_pt;
 
 // The open curve that define this boundary is composed of just one
 // curve section
- inner_open_boundaries_pt[0] =
+ Inner_open_boundaries_pt[0] =
     new TriangleMeshOpenCurve(internal_curve_section1_pt);
 
- inner_open_boundaries_pt[1] =
+ Inner_open_boundaries_pt[1] =
     new TriangleMeshOpenCurve(internal_curve_section2_pt);
 
 //Create the mesh
 //---------------
 //Create mesh parameters object
-TriangleMeshParameters mesh_parameters(outer_boundary_pt);
+TriangleMeshParameters mesh_parameters(Outer_boundary_pt);
 
 mesh_parameters.element_area() = element_area;
 
 // Specify the internal open boundaries
-mesh_parameters.internal_open_curves_pt() = inner_open_boundaries_pt;
+mesh_parameters.internal_open_curves_pt() = Inner_open_boundaries_pt;
 
 // Build an assign bulk mesh
 Bulk_mesh_pt=new TriangleMesh<ELEMENT>(mesh_parameters);
@@ -569,15 +593,6 @@ Trace_file.open(filename);
 oomph_info << "Number of equations: "
         << assign_eqn_numbers() << '\n';
 
-// Clean up memory
-delete outer_boundary_pt;
-delete outer_boundary_ellipse_pt;
-delete outer_curvilinear_boundary_pt[0];
-delete outer_curvilinear_boundary_pt[1];
-delete inner_open_boundaries_pt[0];
-delete inner_open_boundaries_pt[1];
-delete boundary2_pt;
-delete boundary3_pt;
 }
 
 
