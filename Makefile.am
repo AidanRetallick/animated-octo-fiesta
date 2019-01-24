@@ -1,6 +1,7 @@
 # Name of executables: The prefix "noinst" means the executables don't
 # have to be installed anywhere.
 noinst_PROGRAMS =  circular_cap_fvk circular_free_fvk circular_free_simon_fvk
+include $(top_srcdir)/config/makefile_templates/demo_drivers
 #---------------------------------------------------------------------------
 
 # Local sources that circular_cap_fvk code depends on:

@@ -79,7 +79,7 @@ namespace TestSoln
 double A = 1.0;
 double B = 1.0;
 // The coupling of the stretching energy
-double eta = 1;
+double eta = 0;
 double p_mag = 1; 
 double nu = 0.5;
 
@@ -246,6 +246,7 @@ UnstructuredFvKProblem(double element_area = 0.09);
 /// Destructor
 ~UnstructuredFvKProblem()
 {
+ Trace_file.close();
  delete (Surface_mesh_pt);
  delete (Bulk_mesh_pt);
  // Clean up memory
@@ -1119,6 +1120,9 @@ int main(int argc, char **argv)
 
  // The `problem dump' flag
  CommandLineArgs::specify_command_line_flag("--dump_at_every_step");
+
+ // The validate flag
+ CommandLineArgs::specify_command_line_flag("--validate");
  
  // Directory for solution
  string output_dir="RESLT";
@@ -1153,12 +1157,53 @@ int main(int argc, char **argv)
  const bool dump_at_every_step=CommandLineArgs::
    command_line_flag_has_been_set("--dump_at_every_step");
 
+ // If validate flag provided
+ const bool validate=CommandLineArgs::
+   command_line_flag_has_been_set("--validate");
  // Doc what has actually been specified on the command line
  CommandLineArgs::doc_specified_flags();
 
  // Problem instance
  UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<2,4,5> >
    problem(element_area);
+
+ // Validation loop
+ if(validate)
+  {
+  //Validate 1
+   {
+  // Parameters for first test
+  TestSoln::validation_case = TestSoln::one; 
+  TestSoln::p_mag = 1;
+  // Loop until target pressure
+  // Newton solve
+  problem.disable_info_in_newton_solve();
+  problem.newton_solve();
+  problem.doc_solution();
+  }
+
+  //Validate 2
+  {
+  // Parameters for first test
+  TestSoln::validation_case = TestSoln::two; 
+  TestSoln::p_mag = 0;
+  p_max = 3;
+  p_step = 1;
+  // Calculate the number of steps
+  unsigned number_p_steps = ceil((p_max - TestSoln::p_mag)/p_step);
+  // Loop until target pressure
+  for(unsigned ip = 0; ip<number_p_steps;++ip)
+   {
+    // Newton solve
+    TestSoln::p_mag += p_step; 
+    problem.disable_info_in_newton_solve();
+    problem.newton_solve();
+    problem.doc_solution();
+   }
+   }
+   // EXIT
+   return 0;
+  }
  /*
  // Set the initial values to the exact solution (if one exists) - useful 
  // for debugging.
@@ -1225,5 +1270,6 @@ int main(int argc, char **argv)
   }
  // Print success
  oomph_info<<"Exiting Normally\n";
+
 } //End of main
 
