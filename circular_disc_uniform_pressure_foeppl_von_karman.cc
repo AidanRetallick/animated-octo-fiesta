@@ -79,7 +79,7 @@ namespace TestSoln
 double A = 1.0;
 double B = 1.0;
 // The coupling of the stretching energy
-double eta = 0;
+double eta = 1;
 double p_mag = 1; 
 double nu = 0.5;
 
@@ -87,7 +87,7 @@ double nu = 0.5;
 // Validation cases as enum
 enum Validation_case {no_validate=-1, one=1, two=2};
 // Case we are choosing
-Validation_case validation_case = no_validate;
+Validation_case validation_case = two;
 // Classes that contain the two validation solutions
 ManufacturedSolutionWithLinearDisplacements 
   manufactured_solution_linear_u(&nu,&eta);
@@ -1145,18 +1145,20 @@ int main(int argc, char **argv)
  // Doc what has actually been specified on the command line
  CommandLineArgs::doc_specified_flags();
 
- // Problem instance
- UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<2,4,5> >
-   problem(element_area);
 
  // Validation loop
  if(validate)
   {
   //Validate 1
-   {
+  {
   // Parameters for first test
   TestSoln::validation_case = TestSoln::one; 
   TestSoln::p_mag = 1;
+  // Problem instance
+  UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<2,4,5> >
+    problem(element_area);
+  // Set max residuals
+  problem.max_residuals()=1e2;
   // Loop until target pressure
   // Newton solve
   problem.disable_info_in_newton_solve();
@@ -1171,6 +1173,11 @@ int main(int argc, char **argv)
   TestSoln::p_mag = 0;
   p_max = 3;
   p_step = 1;
+  // Problem instance
+  UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<2,4,5> >
+    problem(element_area);
+  // Set max residuals
+  problem.max_residuals()=1e2;
   // Calculate the number of steps
   unsigned number_p_steps = ceil((p_max - TestSoln::p_mag)/p_step);
   // Loop until target pressure
@@ -1186,13 +1193,13 @@ int main(int argc, char **argv)
    // EXIT
    return 0;
   }
- /*
- // Set the initial values to the exact solution (if one exists) - useful 
- // for debugging.
- problem.set_initial_values_to_exact_solution();
- */
+
+ // Problem instance
+ UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<2,4,5> >
+   problem(element_area);
+
  // Set up some problem paramters
- problem.max_residuals()=1e9;
+ problem.max_residuals()=1e3;
  problem.max_newton_iterations()=20;
 
  // If we are restarting
