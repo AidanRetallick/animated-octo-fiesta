@@ -79,7 +79,7 @@ namespace TestSoln
 double A = 1.0;
 double B = 1.0;
 // The coupling of the stretching energy
-double eta = 0;
+double eta = 1;
 double p_mag = 1; 
 double nu = 0.5;
 
@@ -1100,12 +1100,13 @@ int main(int argc, char **argv)
  // The `restart' flag
  CommandLineArgs::specify_command_line_flag("--restart");
 
+ // The `validate' flag
+ CommandLineArgs::specify_command_line_flag("--validate");
+
+
  // The `problem dump' flag
  CommandLineArgs::specify_command_line_flag("--dump_at_every_step");
 
- // The validate flag
- CommandLineArgs::specify_command_line_flag("--validate");
- 
  // Directory for solution
  string output_dir="RESLT";
  CommandLineArgs::specify_command_line_flag("--dir", &output_dir);
@@ -1128,6 +1129,10 @@ int main(int argc, char **argv)
  double element_area=0.09;
  CommandLineArgs::specify_command_line_flag("--element_area", &element_area);
 
+ // Which case are we using
+ int iusage_case = -1;
+ CommandLineArgs::specify_command_line_flag("--validation_case", &iusage_case);
+
  // Parse command line
  CommandLineArgs::parse_and_assign(); 
 
@@ -1142,21 +1147,36 @@ int main(int argc, char **argv)
  // If validate flag provided
  const bool validate=CommandLineArgs::
    command_line_flag_has_been_set("--validate");
+
  // Doc what has actually been specified on the command line
  CommandLineArgs::doc_specified_flags();
 
- // Problem instance
- UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<2,4,5> >
-   problem(element_area);
+ // Assign the boundary case
+ if (iusage_case==-1 ||  (iusage_case>=1 && iusage_case <=2))
+  {
+  // Cast int to enum
+  TestSoln::validation_case=(TestSoln::Validation_case)(iusage_case);
+  }
+ else // Default to what is set in TestSoln
+  { 
+   oomph_info<<"Boundary case \""<<iusage_case<<"\" not recognised.\n";
+   return(-1);
+  }
+
 
  // Validation loop
  if(validate)
   {
   //Validate 1
-   {
+  {
   // Parameters for first test
   TestSoln::validation_case = TestSoln::one; 
   TestSoln::p_mag = 1;
+  // Problem instance
+  UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<2,4,3> >
+    problem(element_area);
+  // Set max residuals
+  problem.max_residuals()=1e2;
   // Loop until target pressure
   // Newton solve
   problem.disable_info_in_newton_solve();
@@ -1171,6 +1191,11 @@ int main(int argc, char **argv)
   TestSoln::p_mag = 0;
   p_max = 3;
   p_step = 1;
+  // Problem instance
+  UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<2,4,3> >
+    problem(element_area);
+  // Set max residuals
+  problem.max_residuals()=1e2;
   // Calculate the number of steps
   unsigned number_p_steps = ceil((p_max - TestSoln::p_mag)/p_step);
   // Loop until target pressure
@@ -1186,13 +1211,13 @@ int main(int argc, char **argv)
    // EXIT
    return 0;
   }
- /*
- // Set the initial values to the exact solution (if one exists) - useful 
- // for debugging.
- problem.set_initial_values_to_exact_solution();
- */
+
+ // Problem instance
+ UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<2,4,3> >
+   problem(element_area);
+
  // Set up some problem paramters
- problem.max_residuals()=1e9;
+ problem.max_residuals()=1e3;
  problem.max_newton_iterations()=20;
 
  // If we are restarting
