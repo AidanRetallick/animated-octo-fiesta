@@ -79,18 +79,20 @@ namespace TestSoln
 double A = 1.0;
 double B = 1.0;
 // The coupling of the stretching energy
-double eta = 1;
 double p_mag = 1; 
 double nu = 0.5;
+double eta = 12*(1-nu*nu);
+double eta_david =1.0;
 
 /*                         VALIDATION DEFINITIONS                             */
 // Validation cases as enum
 enum Validation_case {no_validate=-1, one=1, two=2};
 // Case we are choosing
 Validation_case validation_case = no_validate;
-// Classes that contain the two validation solutions
+// Classes that contain the two validation solutions - these are in the 'DGR 
+// nondimensionalisation' 
 ManufacturedSolutionWithLinearDisplacements 
-  manufactured_solution_linear_u(&nu,&eta);
+  manufactured_solution_linear_u(&nu,&eta_david);
 ManufacturedSolutionDecoupledExtension 
   manufactured_solution_decoupled_extension(&nu,&p_mag);
 
@@ -140,6 +142,9 @@ void get_pressure(const Vector<double>& x, double& pressure)
  // Default just use a constant force
  else
   pressure = p_mag;
+
+ //Convert from `David Nondim' to `Airy Nondim'
+ pressure *= 12*(1-nu*nu);
 }
 
 // Pressure wrapper so we can output the pressure function
@@ -1117,6 +1122,9 @@ int main(int argc, char **argv)
  // Applied Pressure
  CommandLineArgs::specify_command_line_flag("--p", &TestSoln::p_mag);
 
+ // Applied Pressure
+ CommandLineArgs::specify_command_line_flag("--eta", &TestSoln::eta);
+
  // P_step
  double p_step=3;
  CommandLineArgs::specify_command_line_flag("--dp", &p_step);
@@ -1176,7 +1184,7 @@ int main(int argc, char **argv)
   UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<2,4,3> >
     problem(element_area);
   // Set max residuals
-  problem.max_residuals()=1e2;
+  problem.max_residuals()=1e3;
   // Loop until target pressure
   // Newton solve
   problem.disable_info_in_newton_solve();

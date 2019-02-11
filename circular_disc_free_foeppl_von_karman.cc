@@ -79,9 +79,9 @@ namespace TestSoln
 double A = 1.0;
 double B = 1.0;
 // The coupling of the stretching energy
-double eta = 1;
 double p_mag = 1; 
 double nu = 0.5;
+double eta = 12*(1-nu*nu);
 
 /*                     PARAMETRIC BOUNDARY DEFINITIONS                        */
 // Here we create the geom objects for the Parametric Boundary Definition 
@@ -122,6 +122,8 @@ void get_pressure(const Vector<double>& x, double& pressure)
   double r2 = x[0]*x[0]+x[1]*x[1];
   pressure = p_mag*(1.0/sqrt(1-r2)-2.0);
 //  pressure = p_mag*(r2-0.5);
+ //Convert from `David Nondim' to `Airy Nondim'
+ pressure *= 12*(1-nu*nu);
 }
 
 // Pressure wrapper so we can output the pressure function
