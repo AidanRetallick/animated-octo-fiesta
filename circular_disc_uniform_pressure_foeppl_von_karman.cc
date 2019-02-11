@@ -263,7 +263,11 @@ UnstructuredFvKProblem(double element_area = 0.09);
 /// Update after solve (empty)
 void actions_after_newton_solve()
 {
+/* No actions before newton solve */
 }
+
+/// Pin the in-plane displacements and set to zero at centre
+void pin_in_plane_displacements_at_centre_node();
 
 /// Set the initial values to the exact solution (useful for debugging)
 void set_initial_values_to_exact_solution()
@@ -367,6 +371,7 @@ for(unsigned b=0;b<nbound;b++)
 /// Empty as the boundary conditions stay fixed
 void actions_before_newton_solve()
 {
+/* Reapply boundary conditions */
 apply_boundary_conditions();
 }
 
@@ -402,16 +407,18 @@ TriangleMeshPolyLine* Boundary2_pt;
 // The second of the internal boundaries
 TriangleMeshPolyLine* Boundary3_pt;
 
+/// Actions to be performed after read in of meshes
 void actions_after_read_unstructured_meshes()
  {
- // Curved Edge upgrade
+ // Curved Edges need to be upgraded after the rebuild
  upgrade_edge_elements_to_curve(0,Bulk_mesh_pt);
  upgrade_edge_elements_to_curve(1,Bulk_mesh_pt);
-  
  // Rotate degrees of freedom
  rotate_edge_degrees_of_freedom(Bulk_mesh_pt);
-  complete_problem_setup();
-  apply_boundary_conditions();
+ // Make the problem fully functional
+ complete_problem_setup();
+ // Apply any boundary conditions
+ apply_boundary_conditions();
  } 
 
 /// Helper function to apply boundary conditions
@@ -446,11 +453,14 @@ double Element_area;
 void create_traction_elements(const unsigned &b, Mesh* const & bulk_mesh_py,
                             Mesh* const &surface_mesh_pt);
 
+/// \short Loop over all curved edges, then loop over elements and upgrade
+/// them to be curved elements
 void upgrade_edge_elements_to_curve(const unsigned &b, Mesh* const & 
  bulk_mesh_pt);
 
+/// \short Loop over all edge elements and rotate the Hermite degrees of freedom
+/// to be in the directions of the two in-plane vectors specified in TestSoln
 void rotate_edge_degrees_of_freedom(Mesh* const &bulk_mesh_pt);
-
 
 /// \short Delete traction elements and wipe the surface mesh
 void delete_traction_elements(Mesh* const &surface_mesh_pt);
@@ -467,7 +477,7 @@ Mesh* Surface_mesh_pt;
 
 }; // end_of_problem_class
 
-
+/// Constructor
 template<class ELEMENT>
 UnstructuredFvKProblem<ELEMENT>::UnstructuredFvKProblem(double element_area)
 :
@@ -596,7 +606,37 @@ oomph_info << "Number of equations: "
 
 }
 
+//==start_of_complete======================================================
+/// Set boundary condition exactly, and complete the build of 
+/// all elements
+//========================================================================
+template<class ELEMENT>
+void UnstructuredFvKProblem<ELEMENT>::pin_in_plane_displacements_at_centre_node()
+{
+// Pin the node that is at the centre in the domain!
+// Get the num of nods on internal_boundary 0
+unsigned num_int_nod=Bulk_mesh_pt->nboundary_node(2);
+for (unsigned inod=0;inod<num_int_nod;inod++)
+{
+ // Get node point
+ Node* nod_pt=Bulk_mesh_pt->boundary_node_pt(2,inod);
+ // If the node is on the other internal boundary too
+ if( nod_pt->is_on_boundary(3))
+ {
+  // Be verbose and let everyone know we have found the centre
+  oomph_info<<"Found centre point\n";
+  oomph_info<<"x = ("<<nod_pt->x(0)<<" "<<nod_pt->x(1)<<") \n";
+  // Pin it! It's the centre of the domain!
+  // In-plane dofs are always 0 and 1 - on vertex nodes we also have 
+  // out-of-plane dofs from 2-7.
+  nod_pt->pin(0);
+  nod_pt->set_value(0,0.0);
+  nod_pt->pin(1);
+  nod_pt->set_value(1,0.0);
+ }
+}
 
+}
 
 //==start_of_complete======================================================
 /// Set boundary condition exactly, and complete the build of 
@@ -609,31 +649,12 @@ void UnstructuredFvKProblem<ELEMENT>::complete_problem_setup()
 // free by default -- just pin the ones that have Dirichlet conditions
 // here. 
 
-// Pin the node that is at the centre in the domain!
-// Get the num of nods on internal_boundary 0
-unsigned num_int_nod=Bulk_mesh_pt->nboundary_node(2);
-for (unsigned inod=0;inod<num_int_nod;inod++)
-{
- // Get node point
- Node* nod_pt=Bulk_mesh_pt->boundary_node_pt(2,inod);
- // If the node is on the other internal boundary too
- if( nod_pt->is_on_boundary(3))
+// The node at the very centre should be pinned when we have "do-nothing" 
+// conditions on the in-plane displacements (i.e stress free b/c)
+if(TestSoln::validation_case != TestSoln::one)
  {
-  oomph_info<<"Found centre point\n";
-
-  oomph_info<<"x = ("<<nod_pt->x(0)<<" "<<nod_pt->x(1)<<") \n";
-  // Pin it! It's the centre of the domain!
-  // In-plane dofs are always 0 and 1 - on vertex nodes we also have 
-  // out-of-plane dofs from 2-7.
-  if(TestSoln::validation_case != TestSoln::one)
-   {
-   nod_pt->pin(0);
-   nod_pt->set_value(0,0.0);
-   nod_pt->pin(1);
-   nod_pt->set_value(1,0.0);
-   }
+  pin_in_plane_displacements_at_centre_node();
  }
-}
 
 // Complete the build of all elements so they are fully functional
 unsigned n_element = Bulk_mesh_pt->nelement();
@@ -645,6 +666,7 @@ ELEMENT* el_pt = dynamic_cast<ELEMENT*>(Bulk_mesh_pt->element_pt(e));
 //Set the pressure function pointers and the physical constants
 el_pt->pressure_fct_pt() = &TestSoln::get_pressure;
 el_pt->in_plane_forcing_fct_pt() = &TestSoln::get_in_plane_force;  
+// There is no error metric in this case
 if(TestSoln::validation_case == TestSoln::no_validate) 
  el_pt->error_metric_fct_pt() = &TestSoln::error_metric;
 el_pt->nu_pt() = &TestSoln::nu;
@@ -652,53 +674,13 @@ el_pt->eta_pt() = &TestSoln::eta;
 }
 
 // Set the boundary conditions
-//Just loop over outer boundary since inner boundary doesn't have boundary
-//conditions
-unsigned nbound = Outer_boundary1 + 1;
-for(unsigned b=0;b<nbound;b++)
- {
-  // Local block
-  unsigned num_nod=Bulk_mesh_pt->nboundary_node(b);
-  for(unsigned inod=0;inod<num_nod;++inod)
-  {
-   // First Node pt
-   Node* nod_pt=Bulk_mesh_pt->boundary_node_pt(b,inod);
-   double x = nod_pt->x(0), y = nod_pt->x(1), tol = 1e-13;
-   if((y-1.0)*(y-1.0)< tol &&(x-0.0)*(x-0.0)< tol)//HERE LOCAL TOL
-     {
-      oomph_info<<"Found node: ("<<x<<","<<y<<")\n Pinning to zero."<<std::endl;
-      nod_pt->pin(0);
-      nod_pt->set_value(0,0.0);
-     }
-  }
- const unsigned nb_element = Bulk_mesh_pt->nboundary_element(b);
- for(unsigned e=0;e<nb_element;e++)
-  {
-   // Get pointer to bulk element adjacent to b
-   ELEMENT* el_pt = dynamic_cast<ELEMENT*>(
-    Bulk_mesh_pt->boundary_element_pt(b,e));
-   // A true clamp, so we set everything except the second normal to zero
-   el_pt->fix_out_of_plane_displacement_dof(2+0,b,TestSoln::get_null_fct);
-   el_pt->fix_out_of_plane_displacement_dof(2+1,b,TestSoln::get_null_fct);
-   el_pt->fix_out_of_plane_displacement_dof(2+2,b,TestSoln::get_null_fct);
-   el_pt->fix_out_of_plane_displacement_dof(2+4,b,TestSoln::get_null_fct);
-   el_pt->fix_out_of_plane_displacement_dof(2+5,b,TestSoln::get_null_fct);
-
-   // For one validation case we pin the boundary
-   if(TestSoln::validation_case == TestSoln::one)
-    {
-    el_pt->fix_in_plane_displacement_dof(0,b,TestSoln::get_exact_ux);
-    el_pt->fix_in_plane_displacement_dof(1,b,TestSoln::get_exact_uy);
-    }
-  }
- }
-// Loop over flux elements to pass pointer to prescribed traction function
-
+apply_boundary_conditions();
 /// Set pointer to prescribed traction function for traction elements
+// /* No Traction */
 
 // Re-apply Dirichlet boundary conditions (projection ignores
 // boundary conditions!)
-apply_boundary_conditions();
+// /* No Projection */
 }
 
 //==start_of_apply_bc=====================================================
@@ -720,11 +702,11 @@ for(unsigned b=0;b<nbound;b++)
    ELEMENT* el_pt = dynamic_cast<ELEMENT*>(
     Bulk_mesh_pt->boundary_element_pt(b,e));
    // A true clamp, so we set everything except the second normal to zero
-   el_pt->fix_out_of_plane_displacement_dof(2+0,b,TestSoln::get_null_fct);
-   el_pt->fix_out_of_plane_displacement_dof(2+1,b,TestSoln::get_null_fct);
-   el_pt->fix_out_of_plane_displacement_dof(2+2,b,TestSoln::get_null_fct);
-   el_pt->fix_out_of_plane_displacement_dof(2+4,b,TestSoln::get_null_fct);
-   el_pt->fix_out_of_plane_displacement_dof(2+5,b,TestSoln::get_null_fct);
+   el_pt->fix_out_of_plane_displacement_dof(0,b,TestSoln::get_null_fct);
+   el_pt->fix_out_of_plane_displacement_dof(1,b,TestSoln::get_null_fct);
+   el_pt->fix_out_of_plane_displacement_dof(2,b,TestSoln::get_null_fct);
+   el_pt->fix_out_of_plane_displacement_dof(4,b,TestSoln::get_null_fct);
+   el_pt->fix_out_of_plane_displacement_dof(5,b,TestSoln::get_null_fct);
   if(TestSoln::validation_case == TestSoln::one)
    {
    el_pt->fix_in_plane_displacement_dof(0,b,TestSoln::get_exact_ux);
