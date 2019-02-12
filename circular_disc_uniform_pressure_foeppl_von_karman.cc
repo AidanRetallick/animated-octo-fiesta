@@ -174,8 +174,8 @@ void error_metric(const Vector<double>& x, const
   Vector<double>& u, const Vector<double>& u_exact, double& error, double& norm)
 {
  // We use the theta derivative of the out of plane deflection
- error = pow(-x[1]*u[1] + x[0]*u[2],2);
- norm  = pow( x[0]*u[1] + x[1]*u[2],2) ;
+ error = pow((-x[1]*u[1] + x[0]*u[2])/sqrt(x[0]*x[0]+x[1]*x[1]),2);
+ norm  = pow(( x[0]*u[1] + x[1]*u[2])/sqrt(x[0]*x[0]+x[1]*x[1]),2);
 }
 
 // Get the exact solution, complete with radial and azimuthal derivatives
