@@ -87,10 +87,10 @@ double eta_david =1.0;
 /*                         VALIDATION DEFINITIONS                             */
 // Validation cases as enum
 enum Validation_case {no_validate=-1, one=1, two=2};
-// Case we are choosing
-Validation_case validation_case = no_validate;
 // Classes that contain the two validation solutions - these are in the 'DGR 
 // nondimensionalisation' 
+Validation_case validation_case = no_validate;
+// Classes that contain the two validation solutions
 ManufacturedSolutionWithLinearDisplacements 
   manufactured_solution_linear_u(&nu,&eta_david);
 ManufacturedSolutionDecoupledExtension 
@@ -1171,7 +1171,6 @@ int main(int argc, char **argv)
    return(-1);
   }
 
-
  // Validation loop
  if(validate)
   {
@@ -1185,6 +1184,7 @@ int main(int argc, char **argv)
     problem(element_area);
   // Set max residuals
   problem.max_residuals()=1e3;
+  // Set max residuals
   // Loop until target pressure
   // Newton solve
   problem.disable_info_in_newton_solve();
