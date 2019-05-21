@@ -44,5 +44,5 @@ circular_free_simon_fvk_LDADD = -L@libdir@ -lC1_foeppl_von_karman \
 # Automake will replace the variable @includedir@ with the actual
 # include directory.
 
-AM_CPPFLAGS += -I@includedir@ -I$(pathtoeigen) -I$(pathtospectra) -Wall -g -DRANGE_CHECK -DPARANOID
+AM_CPPFLAGS += -I@includedir@ -I$(pathtoeigen) -I$(pathtospectra) -Wall #-g -DRANGE_CHECK -DPARANOID
 #EXTRA_DIST = Circle1.1.ele Circle1.1.node Circle1.1.poly
