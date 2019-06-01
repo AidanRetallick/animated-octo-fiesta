@@ -902,8 +902,8 @@ the mesh has returned an inverted element (less likely)",
     }
 
    // Upgrade it
-   bulk_el_pt->upgrade_to_curved_element(edge,s_ubar,s_obar,
-    parametric_curve_pt);     
+   bulk_el_pt->upgrade_element_to_curved(edge,s_ubar,s_obar,
+    parametric_curve_pt,5);     
   }
 }// end upgrade elements
 
@@ -1221,7 +1221,7 @@ int main(int argc, char **argv)
  // {
          
  // Problem instance
- UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<2,4,5> >
+ UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<4> >
   problem(TestSoln::element_area);
  
  // // Set initial values to exact solution

@@ -854,8 +854,8 @@ the mesh has returned an inverted element (less likely)",
     }
 
    // Upgrade it
-   bulk_el_pt->upgrade_to_curved_element(edge,s_ubar,s_obar,
-    parametric_curve_pt);     
+   bulk_el_pt->upgrade_element_to_curved(edge,s_ubar,s_obar,
+    parametric_curve_pt,3);     
   }
 }// end upgrade elements
 
@@ -1180,7 +1180,7 @@ int main(int argc, char **argv)
   TestSoln::validation_case = TestSoln::one; 
   TestSoln::p_mag = 1;
   // Problem instance
-  UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<2,4,3> >
+  UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<4> >
     problem(element_area);
   // Set max residuals
   problem.max_residuals()=1e3;
@@ -1200,7 +1200,7 @@ int main(int argc, char **argv)
   p_max = 3;
   p_step = 1;
   // Problem instance
-  UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<2,4,3> >
+  UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<4> >
     problem(element_area);
   // Set max residuals
   problem.max_residuals()=1e2;
@@ -1221,7 +1221,7 @@ int main(int argc, char **argv)
   }
 
  // Problem instance
- UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<2,4,3> >
+ UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<4> >
    problem(element_area);
 
  // Set up some problem paramters
