@@ -1,12 +1,15 @@
 # Name of executables: The prefix "noinst" means the executables don't
 # have to be installed anywhere.
-noinst_PROGRAMS =  circular_cap_fvk circular_free_fvk circular_free_simon_fvk
+noinst_PROGRAMS =  circular_cap_fvk circular_free_fvk circular_free_simon_fvk circular_cap_fvk_demo
 include $(top_srcdir)/config/makefile_templates/demo_drivers
 #---------------------------------------------------------------------------
 
 # Local sources that circular_cap_fvk code depends on:
 circular_cap_fvk_SOURCES = \
  circular_disc_uniform_pressure_foeppl_von_karman.cc
+
+circular_cap_fvk_demo_SOURCES = \
+ circular_disc_uniform_pressure_foeppl_von_karman_demo.cc
 
 circular_free_fvk_SOURCES = \
  circular_disc_free_foeppl_von_karman.cc
@@ -17,6 +20,8 @@ circular_free_simon_fvk_SOURCES = \
 #---------------------------------------------------------------------------
 
 circular_cap_fvk_LDADD = -L@libdir@ -lC1_foeppl_von_karman \
+ -lC1_basis -lgeneric $(EXTERNAL_LIBS) $(FLIBS)
+circular_cap_fvk_demo_LDADD = -L@libdir@ -lC1_foeppl_von_karman \
  -lC1_basis -lgeneric $(EXTERNAL_LIBS) $(FLIBS)
 circular_free_fvk_LDADD = -L@libdir@ -lC1_foeppl_von_karman \
  -lC1_basis -lgeneric $(EXTERNAL_LIBS) $(FLIBS)
