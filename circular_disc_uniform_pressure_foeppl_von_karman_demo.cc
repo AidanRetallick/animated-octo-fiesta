@@ -37,7 +37,6 @@
 // The mesh
 #include "meshes/triangle_mesh.h"
 #include "C1_basis/my_geom_object.h"
-#include "my_exact_solutions.h"
 
 using namespace std;
 using namespace oomph;
@@ -84,18 +83,6 @@ double nu = 0.5;
 double eta = 12*(1-nu*nu);
 double eta_david =1.0;
 
-/*                         VALIDATION DEFINITIONS                             */
-// Validation cases as enum
-enum Validation_case {no_validate=-1, one=1, two=2};
-// Classes that contain the two validation solutions - these are in the 'DGR 
-// nondimensionalisation' 
-Validation_case validation_case = no_validate;
-// Classes that contain the two validation solutions
-ManufacturedSolutionWithLinearDisplacements 
-  manufactured_solution_linear_u(&nu,&eta_david);
-ManufacturedSolutionDecoupledExtension 
-  manufactured_solution_decoupled_extension(&nu,&p_mag);
-
 /*                     PARAMETRIC BOUNDARY DEFINITIONS                        */
 // Here we create the geom objects for the Parametric Boundary Definition 
 CurvilineCircleTop parametric_curve_top;
@@ -130,21 +117,8 @@ void get_normal_and_tangent(const Vector<double>& x, Vector<double>& n,
 // Assigns the value of pressure depending on the position (x,y)
 void get_pressure(const Vector<double>& x, double& pressure)
 {
- //pressure = p_mag; //constant pressure - can make a function of x
- // NB if you are going to use 1/r make sure to take out internal boundaries
- // Or there will be a div by zero error here
- 
- // Dependent on case call the forcing
- if(validation_case== one)
-  manufactured_solution_linear_u.get_pressure(x,pressure);
- else if(validation_case== two)
-  manufactured_solution_decoupled_extension.get_pressure(x,pressure);
- // Default just use a constant force
- else
-  pressure = p_mag;
-
- //Convert from `David Nondim' to `Airy Nondim'
- pressure *= 12*(1-nu*nu);
+ // Constant pressure
+ pressure = p_mag;
 }
 
 // Pressure wrapper so we can output the pressure function
@@ -157,20 +131,13 @@ void get_pressure(const Vector<double>& X, Vector<double>& pressure)
 // Assigns the value of in plane forcing depending on the position (x,y)
 void get_in_plane_force(const Vector<double>& x, Vector<double>& grad)
  {
- // Dependent on case call the forcing
- if(validation_case== one)
-  manufactured_solution_linear_u.get_in_plane_force(x,grad);
- else if(validation_case== two)
-  manufactured_solution_decoupled_extension.get_in_plane_force(x,grad);
- else
-  {
+  // No in plane force
   grad[0]=0.0;
   grad[1]=0.0;
-  }
  }
 
 // This metric will flag up any non--axisymmetric parts
-void error_metric(const Vector<double>& x, const 
+void axiasymmetry_metric(const Vector<double>& x, const 
   Vector<double>& u, const Vector<double>& u_exact, double& error, double& norm)
 {
  // We use the theta derivative of the out of plane deflection
@@ -178,55 +145,16 @@ void error_metric(const Vector<double>& x, const
  norm  = pow(( x[0]*u[1] + x[1]*u[2])/sqrt(x[0]*x[0]+x[1]*x[1]),2);
 }
 
-// Get the exact solution, complete with radial and azimuthal derivatives
-void get_exact_radial_w(const Vector<double>& x, Vector<double>& exact_w)
-{
- // u_z and derivatives
- if(validation_case == one)
-  manufactured_solution_linear_u.exact_radial_w_solution(x,exact_w);
-
- else if(validation_case == two)
-  manufactured_solution_decoupled_extension.exact_radial_w_solution(x,exact_w);
-
- else
-  { /* Do Nothing - no exact solution for this case*/}
-}
-
-// Get the exact solution(s)
-void get_exact_w(const Vector<double>& x, Vector<double>& exact_w)
-{
- // u_z and derivatives
- if(validation_case == one)
-  manufactured_solution_linear_u.exact_solution(x,exact_w);
-
- else if(validation_case == two)
-  manufactured_solution_decoupled_extension.exact_solution(x,exact_w);
- else 
- {
-  /* Do nothing -> no exact solution in this case */
- }
-}
-
-// Get the exact u solution (wrapper)
-void get_exact_ux(const Vector<double>& X, double& exact_w)
-{
- Vector<double> w(8);
- get_exact_w(X,w);
- exact_w= w[6];
-}
-
-// Get the exact u solution (wrapper)
-void get_exact_uy(const Vector<double>& X, double& exact_w)
-{
- Vector<double> w(8);
- get_exact_w(X,w);
- exact_w= w[7];
-}
-
 // Get the exact solution
 void get_null_fct(const Vector<double>& X, double& exact_w)
 {
  exact_w = 0.0;
+}
+
+// Get the exact solution(s)
+void dummy_exact_w(const Vector<double>& x, Vector<double>& exact_w)
+{
+  /* Do nothing -> no exact solution in this case */
 }
 
 }
@@ -273,104 +201,6 @@ void actions_after_newton_solve()
 
 /// Pin the in-plane displacements and set to zero at centre
 void pin_in_plane_displacements_at_centre_node();
-
-/// Set the initial values to the exact solution (useful for debugging)
-void set_initial_values_to_exact_solution()
-{
-// Loop over all elements and reset the values
-unsigned n_element = Bulk_mesh_pt->nelement();
-for(unsigned e=0;e<n_element;e++)
-{
- // Upcast from GeneralisedElement to the present element
- ELEMENT* el_pt = dynamic_cast<ELEMENT*>(Bulk_mesh_pt->element_pt(e));
- unsigned nnode = el_pt->nnode();
- for(unsigned i=0;i<3;++i)
-  {
-   // Containers
-   Vector<double> x(2),w(8,0.0);
-   // Get node pointer
-   Node* nod_pt = el_pt->node_pt(i);
-   // Get x 
-   x[0]=nod_pt->x(0);
-   x[1]=nod_pt->x(1);
-   // Get test
-   TestSoln::get_exact_w(x,w);
-   // Set value
-  for(unsigned l=0 ; l<6;++l)
-   {
-    nod_pt->set_value(2+l,w[l]);
-   }
-  }
- // Pin in Plane dofs
- for(unsigned i=0;i<nnode;++i)
-  {
-   // Containers
-   Vector<double> x(2),w(8,0.0);
-   // Get node pointer
-   Node* nod_pt = el_pt->node_pt(i);
-   // Get x 
-   x[0]=nod_pt->x(0);
-   x[1]=nod_pt->x(1);
-   // Get test
-   TestSoln::get_exact_w(x,w);
-   // Set value
-  for(unsigned l=0 ; l<6;++l)
-   {
-    nod_pt->set_value(0,w[6]);
-    nod_pt->set_value(1,w[7]);
-   }
-  }
-  // Pin the internal dofs
-  const unsigned n_internal_dofs = el_pt->number_of_internal_dofs();
-  for(unsigned i=0;i<n_internal_dofs;++i)
-   {
-   // Containers
-   Vector<double> x(2,0.0), s(2,0.0), w(6,0.0);
-   // Get internal data
-   Data* internal_data_pt = el_pt->internal_data_pt(1);
-   el_pt->get_internal_dofs_location(i,s);
-   // Get test
-   el_pt->get_coordinate_x(s,x); 
-   TestSoln::get_exact_radial_w(x,w);
-   // HERE need a function that can give us this lookup
-   internal_data_pt->set_value(i,w[0]);
-   }  
-
-//Just loop over the boundary elements
-unsigned nbound = Outer_boundary1 + 1;
-for(unsigned b=0;b<nbound;b++)
- {
- const unsigned nb_element = Bulk_mesh_pt->nboundary_element(b);
- for(unsigned e=0;e<nb_element;e++)
-  {
-   // Get pointer to bulk element adjacent to b
-   ELEMENT* el_pt = dynamic_cast<ELEMENT*>(
-    Bulk_mesh_pt->boundary_element_pt(b,e));
-   // Loop over vertices of the element (i={0,1,2} always!)
-   for(unsigned i=0;i<3;++i)
-    {
-     Node* nod_pt = el_pt->node_pt(i);
-     // If it is on the bth boundary
-     if(nod_pt -> is_on_boundary(b))
-      {
-       // Set the values of the unknowns that aren't pinned
-       Vector<double> x(2,0.0),w(6,0.0);
-       x[0] = nod_pt->x(0);
-       x[1] = nod_pt->x(1);
-       TestSoln::get_exact_radial_w(x,w);
-       // Just set the nonzero values -> the others are pinned
-       nod_pt->set_value(2+0,w[0]);
-       nod_pt->set_value(2+1,w[1]);
-       nod_pt->set_value(2+2,0.0);
-       nod_pt->set_value(2+3,w[3]);
-       nod_pt->set_value(2+4,0.0);
-       nod_pt->set_value(2+5,0.0);
-      }
-    }
-  }
- }
-}// End loop over elements
-}
 
 /// Update the problem specs before solve: Re-apply boundary conditions
 /// Empty as the boundary conditions stay fixed
@@ -656,10 +486,7 @@ void UnstructuredFvKProblem<ELEMENT>::complete_problem_setup()
 
 // The node at the very centre should be pinned when we have "do-nothing" 
 // conditions on the in-plane displacements (i.e stress free b/c)
-if(TestSoln::validation_case != TestSoln::one)
- {
-  pin_in_plane_displacements_at_centre_node();
- }
+pin_in_plane_displacements_at_centre_node();
 
 // Complete the build of all elements so they are fully functional
 unsigned n_element = Bulk_mesh_pt->nelement();
@@ -672,14 +499,13 @@ ELEMENT* el_pt = dynamic_cast<ELEMENT*>(Bulk_mesh_pt->element_pt(e));
 el_pt->pressure_fct_pt() = &TestSoln::get_pressure;
 el_pt->in_plane_forcing_fct_pt() = &TestSoln::get_in_plane_force;  
 // There is no error metric in this case
-if(TestSoln::validation_case == TestSoln::no_validate) 
- el_pt->error_metric_fct_pt() = &TestSoln::error_metric;
+el_pt->error_metric_fct_pt() = &TestSoln::axiasymmetry_metric;
 el_pt->nu_pt() = &TestSoln::nu;
 el_pt->eta_pt() = &TestSoln::eta;
 }
-
 // Set the boundary conditions
 apply_boundary_conditions();
+
 /// Set pointer to prescribed traction function for traction elements
 // /* No Traction */
 
@@ -707,16 +533,14 @@ for(unsigned b=0;b<nbound;b++)
    ELEMENT* el_pt = dynamic_cast<ELEMENT*>(
     Bulk_mesh_pt->boundary_element_pt(b,e));
    // A true clamp, so we set everything except the second normal to zero
-   el_pt->fix_out_of_plane_displacement_dof(0,b,TestSoln::get_null_fct);
-   el_pt->fix_out_of_plane_displacement_dof(1,b,TestSoln::get_null_fct);
-   el_pt->fix_out_of_plane_displacement_dof(2,b,TestSoln::get_null_fct);
-   el_pt->fix_out_of_plane_displacement_dof(4,b,TestSoln::get_null_fct);
-   el_pt->fix_out_of_plane_displacement_dof(5,b,TestSoln::get_null_fct);
-  if(TestSoln::validation_case == TestSoln::one)
-   {
-   el_pt->fix_in_plane_displacement_dof(0,b,TestSoln::get_exact_ux);
-   el_pt->fix_in_plane_displacement_dof(1,b,TestSoln::get_exact_uy);
-   }
+   for(unsigned idof=0; idof<6; ++idof)
+    {
+     // Cannot set second normal derivative
+     if(idof!=3)
+      {
+       el_pt->fix_out_of_plane_displacement_dof(idof,b,TestSoln::get_null_fct);
+      }
+    }
   }
  }
 } // end set bc
@@ -963,15 +787,6 @@ some_file << "TEXT X = 22, Y = 92, CS=FRAME T = \""
        << comment << "\"\n";
 some_file.close();
 
-//  Output exact solution
-sprintf(filename,"%s/exact_soln%i-%f.dat","RESLT",Doc_info.number()
- ,Element_area);
-some_file.open(filename);
-Bulk_mesh_pt->output_fct(some_file,npts,TestSoln::get_exact_w); 
-some_file << "TEXT X = 22, Y = 92, CS=FRAME T = \"" 
-       << comment << "\"\n";
-some_file.close();
-
 //  Output pressure function
 sprintf(filename,"%s/pressure%i-%f.dat","RESLT",Doc_info.number()
  ,Element_area);
@@ -1007,14 +822,14 @@ for (unsigned r = 0; r < n_region; r++)
 }
 }
 
-// // Doc error and return of the square of the L2 error
-// //---------------------------------------------------
-// //double error,norm,dummy_error,zero_norm;
-  double dummy_error,zero_norm;
+ // Doc error and return of the square of the L2 error
+ //---------------------------------------------------
+ //double error,norm,dummy_error,zero_norm;
+ double dummy_error,zero_norm;
  sprintf(filename,"RESLT/error%i-%f.dat",Doc_info.number(),Element_area);
  some_file.open(filename);
  
- Bulk_mesh_pt->compute_error(some_file,TestSoln::get_exact_w,
+ Bulk_mesh_pt->compute_error(some_file,TestSoln::dummy_exact_w,
                         dummy_error,zero_norm);
  some_file.close();
  
@@ -1025,8 +840,6 @@ for (unsigned r = 0; r < n_region; r++)
  oomph_info << "Norm of computed solution: " << sqrt(zero_norm)
             << std::endl;
  
- //Trace_file << TestSoln::p_mag << " " << "\n ";
- //
  // Find the solution at r=0
  //   // ----------------------
  MeshAsGeomObject* Mesh_as_geom_obj_pt=
@@ -1101,17 +914,6 @@ int main(int argc, char **argv)
 
  // Define possible command line arguments and parse the ones that
  // were actually specified
-
- // The `restart' flag
- CommandLineArgs::specify_command_line_flag("--restart");
-
- // The `validate' flag
- CommandLineArgs::specify_command_line_flag("--validate");
-
-
- // The `problem dump' flag
- CommandLineArgs::specify_command_line_flag("--dump_at_every_step");
-
  // Directory for solution
  string output_dir="RESLT";
  CommandLineArgs::specify_command_line_flag("--dir", &output_dir);
@@ -1125,102 +927,15 @@ int main(int argc, char **argv)
  // Applied Pressure
  CommandLineArgs::specify_command_line_flag("--eta", &TestSoln::eta);
 
- // P_step
- double p_step=3;
- CommandLineArgs::specify_command_line_flag("--dp", &p_step);
-
- // Applied Pressure
- double p_max = 4;
- CommandLineArgs::specify_command_line_flag("--p_max", &p_max);
-
  // Element Area (no larger element than 0.09)
  double element_area=0.09;
  CommandLineArgs::specify_command_line_flag("--element_area", &element_area);
 
- // Which case are we using
- int iusage_case = -1;
- CommandLineArgs::specify_command_line_flag("--validation_case", &iusage_case);
-
  // Parse command line
  CommandLineArgs::parse_and_assign(); 
 
- // If restart flag has been set
- const bool do_restart=CommandLineArgs::
-   command_line_flag_has_been_set("--restart");
-
- // If restart flag has been set
- const bool dump_at_every_step=CommandLineArgs::
-   command_line_flag_has_been_set("--dump_at_every_step");
-
- // If validate flag provided
- const bool validate=CommandLineArgs::
-   command_line_flag_has_been_set("--validate");
-
  // Doc what has actually been specified on the command line
  CommandLineArgs::doc_specified_flags();
-
- // Assign the boundary case
- if (iusage_case==-1 ||  (iusage_case>=1 && iusage_case <=2))
-  {
-  // Cast int to enum
-  TestSoln::validation_case=(TestSoln::Validation_case)(iusage_case);
-  }
- else // Default to what is set in TestSoln
-  { 
-   oomph_info<<"Boundary case \""<<iusage_case<<"\" not recognised.\n";
-   return(-1);
-  }
-
- // Validation loop
- if(validate)
-  {
-  //Validate 1
-  {
-  // Parameters for first test
-  TestSoln::validation_case = TestSoln::one; 
-  TestSoln::p_mag = 1;
-  // Problem instance
-  UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<4> >
-    problem(element_area);
-  // Set max residuals
-  problem.max_residuals()=1e3;
-  // Set max residuals
-  // Loop until target pressure
-  // Newton solve
-  problem.disable_info_in_newton_solve();
-  problem.newton_solve();
-  problem.doc_solution();
-  }
-
-  //Validate 2
-  {
-  // Parameters for first test
-  TestSoln::validation_case = TestSoln::two; 
-  TestSoln::p_mag = 0;
-  p_max = 3;
-  p_step = 1;
-  // Problem instance
-  UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<4> >
-    problem(element_area);
-  // Set max residuals
-  problem.max_residuals()=1e2;
-  // Calculate the number of steps
-  unsigned number_p_steps = ceil((p_max - TestSoln::p_mag)/p_step);
-  // Loop until target pressure
-  for(unsigned ip = 0; ip<number_p_steps;++ip)
-   {
-    // Newton solve
-    TestSoln::p_mag += p_step; 
-    problem.disable_info_in_newton_solve();
-    problem.newton_solve();
-    problem.doc_solution();
-   }
-   }
-   // EXIT
-   return 0;
-  }
-
- // Problem instance
  UnstructuredFvKProblem<FoepplVonKarmanC1CurvedBellElement<4> >
    problem(element_area);
 
@@ -1228,63 +943,21 @@ int main(int argc, char **argv)
  problem.max_residuals()=1e3;
  problem.max_newton_iterations()=20;
 
- // If we are restarting
- if(do_restart)
- {
-  oomph_info<<"Restarting\n";
-  // Read the restart file
-  std::ifstream filestream;
-  filestream.open("fvk_problem_data.dump");
-  problem.read(filestream);    
-  filestream.close(); 
+ // Do the newton solve
+ oomph_info<<"Solving for p=" << TestSoln::p_mag<<"\n";
+ problem.newton_solve();
 
-  // Check with a newton solve 
-  problem.newton_solve(); 
-  
-  //Output solution
-  problem.doc_solution();
- }
-
- // Now do simple loop until target pressure and solve
- while(TestSoln::p_mag<p_max)
-  {
-  // Do the newton solve
-  oomph_info<<"Solving for p=" << TestSoln::p_mag<<"\n";
-  problem.newton_solve();
-
-  // Document
-  problem.doc_solution();
-  oomph_info << std::endl;
-  oomph_info << "---------------------------------------------" << std::endl;
-  oomph_info << " Pcos (" << TestSoln::p_mag << ")" << std::endl;
-  oomph_info << "Current dp  (" << p_step << ")" << std::endl;
-  oomph_info << "Poisson ratio (" << TestSoln::nu << ")" << std::endl;
-  oomph_info << "Solution number (" <<problem.Doc_info.number()-1 << ")"
-             << std::endl;
-  oomph_info << "---------------------------------------------" << std::endl;
-  oomph_info << std::endl;
-
-  // Dump the data 
-  if(dump_at_every_step)
-  {
-   char filename[100];
-   std::ofstream filestream;
-   filestream.precision(15);
-   sprintf(filename,"%s/fvk_circle_data%i-%f.dump",
-           problem.Doc_info.directory().c_str(),
-           problem.Doc_info.number(),
-           TestSoln::p_mag
-          );
-   oomph_info<<"\nDumping to: \""<<filename<<"\"\n";
-   filestream.open(filename);
-   problem.dump(filestream);
-   filestream.close();
-  }
-  // Increase the pressure 
-  TestSoln::p_mag+=p_step;
-  }
+ // Document
+ problem.doc_solution();
+ oomph_info << std::endl;
+ oomph_info << "---------------------------------------------" << std::endl;
+ oomph_info << " Pcos (" << TestSoln::p_mag << ")" << std::endl;
+ oomph_info << "Poisson ratio (" << TestSoln::nu << ")" << std::endl;
+ oomph_info << "Solution number (" <<problem.Doc_info.number()-1 << ")"
+            << std::endl;
+ oomph_info << "---------------------------------------------" << std::endl;
+ oomph_info << std::endl;
  // Print success
  oomph_info<<"Exiting Normally\n";
-
 } //End of main
 
