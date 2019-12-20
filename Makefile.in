@@ -89,7 +89,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 noinst_PROGRAMS = circular_cap_fvk$(EXEEXT) circular_free_fvk$(EXEEXT) \
-	circular_free_simon_fvk$(EXEEXT)
+	circular_free_simon_fvk$(EXEEXT) \
+	circular_cap_fvk_demo$(EXEEXT)
 subdir = user_drivers/animated-octo-fiesta
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/config/configure.ac_scripts/automake_init_command_file \
@@ -113,6 +114,10 @@ AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+am_circular_cap_fvk_demo_OBJECTS = circular_disc_uniform_pressure_foeppl_von_karman_demo.$(OBJEXT)
+circular_cap_fvk_demo_OBJECTS = $(am_circular_cap_fvk_demo_OBJECTS)
+circular_cap_fvk_demo_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
 am_circular_free_fvk_OBJECTS =  \
 	circular_disc_free_foeppl_von_karman.$(OBJEXT)
 circular_free_fvk_OBJECTS = $(am_circular_free_fvk_OBJECTS)
@@ -157,10 +162,11 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(circular_cap_fvk_SOURCES) $(circular_free_fvk_SOURCES) \
+SOURCES = $(circular_cap_fvk_SOURCES) $(circular_cap_fvk_demo_SOURCES) \
+	$(circular_free_fvk_SOURCES) \
 	$(circular_free_simon_fvk_SOURCES)
 DIST_SOURCES = $(circular_cap_fvk_SOURCES) \
-	$(circular_free_fvk_SOURCES) \
+	$(circular_cap_fvk_demo_SOURCES) $(circular_free_fvk_SOURCES) \
 	$(circular_free_simon_fvk_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -238,7 +244,7 @@ AMTAR = @AMTAR@
 # Automake will replace the variable @includedir@ with the actual
 # include directory.
 AM_CPPFLAGS = @AM_CPPFLAGS@ -I@includedir@ -I@includedir@ \
-	-I$(pathtoeigen) -I$(pathtospectra) -Wall #-g -DRANGE_CHECK \
+	-I$(pathtoeigen) -I$(pathtospectra) -Wall -g -DRANGE_CHECK \
 	-DPARANOID
 AM_CXXFLAGS = @AM_CXXFLAGS@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
@@ -414,6 +420,9 @@ EXTRA_DIST = validate.sh validata
 circular_cap_fvk_SOURCES = \
  circular_disc_uniform_pressure_foeppl_von_karman.cc
 
+circular_cap_fvk_demo_SOURCES = \
+ circular_disc_uniform_pressure_foeppl_von_karman_demo.cc
+
 circular_free_fvk_SOURCES = \
  circular_disc_free_foeppl_von_karman.cc
 
@@ -423,6 +432,9 @@ circular_free_simon_fvk_SOURCES = \
 
 #---------------------------------------------------------------------------
 circular_cap_fvk_LDADD = -L@libdir@ -lC1_foeppl_von_karman \
+ -lC1_basis -lgeneric $(EXTERNAL_LIBS) $(FLIBS)
+
+circular_cap_fvk_demo_LDADD = -L@libdir@ -lC1_foeppl_von_karman \
  -lC1_basis -lgeneric $(EXTERNAL_LIBS) $(FLIBS)
 
 circular_free_fvk_LDADD = -L@libdir@ -lC1_foeppl_von_karman \
@@ -479,6 +491,10 @@ circular_cap_fvk$(EXEEXT): $(circular_cap_fvk_OBJECTS) $(circular_cap_fvk_DEPEND
 	@rm -f circular_cap_fvk$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(circular_cap_fvk_OBJECTS) $(circular_cap_fvk_LDADD) $(LIBS)
 
+circular_cap_fvk_demo$(EXEEXT): $(circular_cap_fvk_demo_OBJECTS) $(circular_cap_fvk_demo_DEPENDENCIES) $(EXTRA_circular_cap_fvk_demo_DEPENDENCIES) 
+	@rm -f circular_cap_fvk_demo$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(circular_cap_fvk_demo_OBJECTS) $(circular_cap_fvk_demo_LDADD) $(LIBS)
+
 circular_free_fvk$(EXEEXT): $(circular_free_fvk_OBJECTS) $(circular_free_fvk_DEPENDENCIES) $(EXTRA_circular_free_fvk_DEPENDENCIES) 
 	@rm -f circular_free_fvk$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(circular_free_fvk_OBJECTS) $(circular_free_fvk_LDADD) $(LIBS)
@@ -496,6 +512,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/circular_disc_free_foeppl_von_karman.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/circular_disc_free_foeppl_von_karman_simon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/circular_disc_uniform_pressure_foeppl_von_karman.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/circular_disc_uniform_pressure_foeppl_von_karman_demo.Po@am__quote@
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

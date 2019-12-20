@@ -277,17 +277,6 @@ enum
 
 double Element_area;
 
-// The extra members required for flux type boundary conditions.
-/// \short Number of "bulk" elements (We're attaching flux elements
-/// to bulk mesh --> only the first Nkirchhoff_elements elements in
-/// the mesh are bulk elements!)
-// unsigned Nkirchhoff_elements;
-
-/// \short Create bending moment elements on the b-th boundary of the
-/// problems mesh 
-void create_traction_elements(const unsigned &b, Mesh* const & bulk_mesh_py,
-                            Mesh* const &surface_mesh_pt);
-
 /// \short Loop over all curved edges, then loop over elements and upgrade
 /// them to be curved elements
 void upgrade_edge_elements_to_curve(const unsigned &b, Mesh* const & 
@@ -299,10 +288,6 @@ void rotate_edge_degrees_of_freedom(Mesh* const &bulk_mesh_pt);
 
 /// \short Delete traction elements and wipe the surface mesh
 void delete_traction_elements(Mesh* const &surface_mesh_pt);
-
-/// \short Set pointer to prescribed-flux function for all elements
-/// in the surface mesh
-void set_prescribed_traction_pt();
 
 /// Pointer to "bulk" mesh
 TriangleMesh<ELEMENT>* Bulk_mesh_pt;
@@ -438,7 +423,6 @@ Trace_file.open(filename);
 
 oomph_info << "Number of equations: "
         << assign_eqn_numbers() << '\n';
-
 }
 
 //==start_of_complete======================================================
@@ -449,7 +433,7 @@ template<class ELEMENT>
 void UnstructuredFvKProblem<ELEMENT>::pin_in_plane_displacements_at_centre_node()
 {
 // Pin the node that is at the centre in the domain!
-// Get the num of nods on internal_boundary 0
+// Get the num of nods on internal_boundary 2
 unsigned num_int_nod=Bulk_mesh_pt->nboundary_node(2);
 for (unsigned inod=0;inod<num_int_nod;inod++)
 {
@@ -458,9 +442,6 @@ for (unsigned inod=0;inod<num_int_nod;inod++)
  // If the node is on the other internal boundary too
  if( nod_pt->is_on_boundary(3))
  {
-  // Be verbose and let everyone know we have found the centre
-  oomph_info<<"Found centre point\n";
-  oomph_info<<"x = ("<<nod_pt->x(0)<<" "<<nod_pt->x(1)<<") \n";
   // Pin it! It's the centre of the domain!
   // In-plane dofs are always 0 and 1 - on vertex nodes we also have 
   // out-of-plane dofs from 2-7.
@@ -505,13 +486,6 @@ el_pt->eta_pt() = &TestSoln::eta;
 }
 // Set the boundary conditions
 apply_boundary_conditions();
-
-/// Set pointer to prescribed traction function for traction elements
-// /* No Traction */
-
-// Re-apply Dirichlet boundary conditions (projection ignores
-// boundary conditions!)
-// /* No Projection */
 }
 
 //==start_of_apply_bc=====================================================
@@ -545,15 +519,6 @@ for(unsigned b=0;b<nbound;b++)
  }
 } // end set bc
 
-template <class ELEMENT>
-void UnstructuredFvKProblem<ELEMENT>::
-create_traction_elements(const unsigned &b, Mesh* const &bulk_mesh_pt, 
-                             Mesh* const &surface_mesh_pt)
-{
-/* NO TRACTION ELEMENTS YET DEFINED*/
-}// end create traction elements
-
-
 /// A function that upgrades straight sided elements to be curved. This involves
 // Setting up the parametric boundary, F(s) and the first derivative F'(s)
 // We also need to set the edge number of the upgraded element and the positions
@@ -570,26 +535,22 @@ create_traction_elements(const unsigned &b, Mesh* const &bulk_mesh_pt,
 // as well.
 template <class ELEMENT>
 void UnstructuredFvKProblem<ELEMENT >::
-upgrade_edge_elements_to_curve(const unsigned &b, Mesh* const &bulk_mesh_pt) 
+upgrade_edge_elements_to_curve(const unsigned &ibound, Mesh* const &bulk_mesh_pt) 
 {
- // How many bulk elements adjacent to boundary b
- unsigned n_element = bulk_mesh_pt-> nboundary_element(b);
  // These depend on the boundary we are on
  CurvilineGeomObject* parametric_curve_pt; 
 
  // Define the functions for each part of the boundary
- switch (b)
+ switch (ibound)
   {
   // Upper boundary
   case 0:
    parametric_curve_pt = &TestSoln::parametric_curve_top;
   break;
-
   // Lower boundary
   case 1:
    parametric_curve_pt = &TestSoln::parametric_curve_bottom;
   break;
-
   default:
    throw OomphLibError(
     "I have encountered a boundary number that I wasn't expecting. Please fill \
@@ -599,15 +560,16 @@ me in if you want additional curved boundaries..",
   break;
  }
  
- // Loop over the bulk elements adjacent to boundary b
+ // How many bulk elements adjacent to boundary ibound
+ unsigned n_element = bulk_mesh_pt-> nboundary_element(ibound);
+ // Loop over the bulk elements adjacent to boundary ibound
  for(unsigned e=0; e<n_element; e++)
   {
    // Get pointer to bulk element adjacent to b
    ELEMENT* bulk_el_pt = dynamic_cast<ELEMENT*>(
-    bulk_mesh_pt->boundary_element_pt(b,e));
+    bulk_mesh_pt->boundary_element_pt(ibound,e));
    
    // Loop over (vertex) nodes
-   unsigned nnode=3; //This should always be = 3 for triangles
    unsigned index_of_interior_node=3;
 
    // Enum for the curved edge
@@ -616,65 +578,58 @@ me in if you want additional curved boundaries..",
    // Vertices positions
    Vector<Vector<double> > xn(3,Vector<double>(2,0.0));
  
-   // Get vertices for debugging
-   Vector<Vector<double> > verts(3,Vector<double>(2,0.0));
-   // Loop nodes
+   // Loop over all (three) nodes of the element
+   const unsigned nnode = 3;
+   unsigned nnode_on_neither_boundary = 0;
    for(unsigned n=0;n<nnode;++n)
     {
      // If it is on boundary
      Node* nod_pt = bulk_el_pt->node_pt(n);
-     verts[n][0]=nod_pt->x(0);
-     verts[n][1]=nod_pt->x(1);
+
+     xn[n][0]=nod_pt->x(0);
+     xn[n][1]=nod_pt->x(1);
 
      // Check if it is on the outer boundaries
-     if(nod_pt->is_on_boundary(Outer_boundary0) 
-         || nod_pt->is_on_boundary(Outer_boundary1))
+     if(!(nod_pt->is_on_boundary(Outer_boundary0) || 
+        nod_pt->is_on_boundary(Outer_boundary1)))
       {
-       xn[n][0]=nod_pt->x(0);
-       xn[n][1]=nod_pt->x(1);
+       index_of_interior_node = n;
+       ++nnode_on_neither_boundary;
       }
-     // The edge is denoted by the index of the  opposite (interior) node
-     else {index_of_interior_node = n;}
     }
-   // Initialise s_ubar s_obar (start and end respectively)
-   double s_ubar, s_obar;
-
    // s at the next (cyclic) node after interior
-   s_ubar = parametric_curve_pt->get_zeta(xn[(index_of_interior_node+1) % 3]);
+   const double s_ubar = parametric_curve_pt->get_zeta(xn[(index_of_interior_node+1) % 3]);
    // s at the previous (cyclic) node before interior
-   s_obar = parametric_curve_pt->get_zeta(xn[(index_of_interior_node+2) % 3]);
+   const double s_obar = parametric_curve_pt->get_zeta(xn[(index_of_interior_node+2) % 3]);
 
    // Assign edge case
-   switch(index_of_interior_node)
+   edge = static_cast<MyC1CurvedElements::Edge>(index_of_interior_node);
+
+   // Check nnode_on_neither_boundary
+   if(nnode_on_neither_boundary == 0)
     {
-     case 0: edge= MyC1CurvedElements::zero; 
-      break;
-     case 1: edge= MyC1CurvedElements::one; 
-      break;
-     case 2: edge= MyC1CurvedElements::two; 
-      break;
-     // Should break it here HERE
-     default: edge= MyC1CurvedElements::none; 
       throw OomphLibError(
-       "The edge number has been set to a value greater than two: either we have\
- quadrilateral elements or more likely the index_of_interior_node was never set\
- and remains at its default value.",
-       "UnstructuredFvKProblem::upgrade_edge_elements_to_curve(...)",
-       OOMPH_EXCEPTION_LOCATION);
+       "No nodes were found that were not on Outer_boundary0 or \
+Outer_boundary1. One node on each CurvedElements must be interior.",
+       OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
       break;
      }
-   // Check for inverted elements HERE
+   else if (nnode_on_neither_boundary > 1)
+     {
+      throw OomphLibError(
+       "Multiple nodes were found that were not on Outer_boundary0 or \
+Outer_boundary1. Only a single node on each CurvedElements can be interior.",
+       OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
+      break;
+     }
+   // Check for inverted elements 
    if (s_ubar>s_obar)
     {
-     oomph_info <<"Apparent clockwise direction of parametric coordinate."
-                <<"This will probably result in an inverted element."
-                <<"s_start="<<s_ubar<<"; s_end ="<<s_obar<<std::endl;
      throw OomphLibError(
-       "The Edge coordinate appears to be decreasing from s_start to s_end. \
-Either the parametric boundary is defined to be clockwise (a no-no) or \
-the mesh has returned an inverted element (less likely)",
-       "UnstructuredFvKProblem::upgrade_edge_elements_to_curve(...)",
-       OOMPH_EXCEPTION_LOCATION);
+       "The parametric coordinate was found to be decreasing. The paremetric \
+coordinate must increase as the edge is traversed anti-clockwise.",
+       OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
+       break;
     }
 
    // Upgrade it
@@ -744,16 +699,7 @@ rotate_edge_degrees_of_freedom( Mesh* const &bulk_mesh_pt)
     el_pt->set_up_rotated_dofs(nbnode,bnode,&TestSoln::get_normal_and_tangent);
    }
  }
-}// end create traction elements
-
-//==start_of_set_prescribed_traction_pt===================================
-/// Set pointer to prescribed traction function for all elements in the 
-/// surface mesh
-//========================================================================
-template<class ELEMENT>
-void UnstructuredFvKProblem<ELEMENT>::set_prescribed_traction_pt()
-{
-}// end of set prescribed flux pt
+}// end set up rotated dofs
 
 //==start_of_doc_solution=================================================
 /// Doc the solution
@@ -848,7 +794,6 @@ for (unsigned r = 0; r < n_region; r++)
  GeomObject* geom_obj_pt=0;
  Vector<double> r(2,0.0);
  Mesh_as_geom_obj_pt->locate_zeta(r,geom_obj_pt,s);
- oomph_info << "pointer: " << geom_obj_pt << std::endl;
  // The member function does not exist in this element
  // it is instead called interpolated_u_foeppl_von_karman and returns a vector of 
  // length 12 or 18 - the interface is pretty horrible so it may be something
@@ -960,4 +905,3 @@ int main(int argc, char **argv)
  // Print success
  oomph_info<<"Exiting Normally\n";
 } //End of main
-
