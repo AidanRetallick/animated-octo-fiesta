@@ -629,63 +629,41 @@ as the edge is traversed anti-clockwise.",
 // For example if we know w(n,t) = f(t) (where n and t are the
 // normal and tangent to a boundary) we ALSO know dw/dt and d2w/dt2.
 // NB no rotation is needed if the edges are completely free!
+// begin rotate_edge_degrees_of_freedom
 template <class ELEMENT>
 void UnstructuredFvKProblem<ELEMENT>::
 rotate_edge_degrees_of_freedom( Mesh* const &bulk_mesh_pt)
 {
- // How many bulk elements
+ // Loop over the bulk elements
  unsigned n_element = bulk_mesh_pt-> nelement();
-
- // Loop over the bulk elements adjacent to boundary b
  for(unsigned e=0; e<n_element; e++)
   {
-   // Get pointer to bulk element adjacent to b
+   // Get pointer to bulk element adjacent
    ELEMENT* el_pt = dynamic_cast<ELEMENT*>(Bulk_mesh_pt->element_pt(e));
 
-   // Loop nodes
-   unsigned nnode =3;
-   unsigned nbnode=0;
-   // Count the number of boundary nodes
+   // Calculate nodes on the relevant boundaries
+   const unsigned nnode=3;
+   // Count the number of boundary nodes on external boundaries
+   Vector<unsigned> boundary_nodes;
    for (unsigned n=0; n<nnode;++n)
      {
-      // Check it isn't on an internal boundary
-      bool on_boundary_2=el_pt->node_pt(n)->is_on_boundary(2);
-      bool on_boundary_3=el_pt->node_pt(n)->is_on_boundary(3);
-      // If it isn't on an internal boundary but it is on an external boundary
-      if(!(on_boundary_2 || on_boundary_3))
-       {nbnode+=unsigned(el_pt->node_pt(n)->is_on_boundary());}
+      // If on_external_boundary
+      if (el_pt->node_pt(n)->is_on_boundary(0))
+       { boundary_nodes.push_back(0); }
+      else if (el_pt->node_pt(n)->is_on_boundary(1))
+       { boundary_nodes.push_back(1); }
      }
 
-   // Now if we have nodes on boundary in this element
-   if(nbnode>0)
+   // If the element has nodes on the boundary, rotate the Hermite dofs
+   if(!boundary_nodes.empty())
     {
-     // Set up vector
-     Vector<unsigned> bnode (nbnode,0);
-     unsigned inode(0);
-
-     // Fill in the bnode Vector
-     for (unsigned n=0; n<nnode;++n)
-      {
-       // Check it isn't on an internal boundary
-       bool on_boundary_2=el_pt->node_pt(n)->is_on_boundary(2);
-       bool on_boundary_3=el_pt->node_pt(n)->is_on_boundary(3);
-       if(!(on_boundary_2 || on_boundary_3))
-       {
-       // If it is on the boundary
-       if(el_pt->node_pt(n)->is_on_boundary())
-        {
-         // Set up the Vector holding the boundary nodes
-         bnode[inode]=n;
-         ++inode;
-        }
-       }
-      }
-    // Now rotate the nodes by passing the index of the nodes and the
-    // normal / tangent vectors to the element
-    el_pt->set_up_rotated_dofs(nbnode,bnode,&TestSoln::get_normal_and_tangent);
-   }
+     // Rotate the nodes by passing the index of the nodes and the
+     // normal / tangent vectors to the element
+     el_pt->set_up_rotated_dofs(
+        boundary_nodes.size(),boundary_nodes,&TestSoln::get_normal_and_tangent);
+    }
  }
-}// end set up rotated dofs
+}// end rotate_edge_degrees_of_freedom
 
 //==start_of_doc_solution=================================================
 /// Doc the solution
