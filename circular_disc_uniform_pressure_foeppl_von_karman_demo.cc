@@ -533,6 +533,7 @@ for(unsigned b=0;b<nbound;b++)
 // too. This is well discussed in by [Zenisek 1981] (Aplikace matematiky , 
 // Vol. 26 (1981), No. 2, 121--141). This results in the necessity for F''(s) 
 // as well.
+//==start_of_upgrade_edge_elements============================================
 template <class ELEMENT>
 void UnstructuredFvKProblem<ELEMENT >::
 upgrade_edge_elements_to_curve(const unsigned &ibound, Mesh* const &bulk_mesh_pt) 
@@ -543,65 +544,55 @@ upgrade_edge_elements_to_curve(const unsigned &ibound, Mesh* const &bulk_mesh_pt
  // Define the functions for each part of the boundary
  switch (ibound)
   {
-  // Upper boundary
   case 0:
-   parametric_curve_pt = &TestSoln::parametric_curve_top;
+   parametric_curve_pt = &TestSoln::parametric_curve_top; 
   break;
-  // Lower boundary
   case 1:
    parametric_curve_pt = &TestSoln::parametric_curve_bottom;
   break;
   default:
-   throw OomphLibError(
-    "I have encountered a boundary number that I wasn't expecting. Please fill \
-me in if you want additional curved boundaries..",
-    "UnstructuredFvKProblem::upgrade_edge_elements_to_curve(...)",
+   throw OomphLibError("Unexpected boundary number. Please add additional \
+curved boundaries as required.", OOMPH_CURRENT_FUNCTION, 
     OOMPH_EXCEPTION_LOCATION);
   break;
  }
  
- // How many bulk elements adjacent to boundary ibound
- unsigned n_element = bulk_mesh_pt-> nboundary_element(ibound);
  // Loop over the bulk elements adjacent to boundary ibound
- for(unsigned e=0; e<n_element; e++)
+ const unsigned n_els=bulk_mesh_pt->nboundary_element(ibound);
+ for(unsigned e=0; e<n_els; e++)
   {
    // Get pointer to bulk element adjacent to b
    ELEMENT* bulk_el_pt = dynamic_cast<ELEMENT*>(
     bulk_mesh_pt->boundary_element_pt(ibound,e));
    
-   // Loop over (vertex) nodes
-   unsigned index_of_interior_node=3;
-
-   // Enum for the curved edge
+   // Initialise enum for the curved edge
    MyC1CurvedElements::Edge edge(MyC1CurvedElements::none);
-
-   // Vertices positions
-   Vector<Vector<double> > xn(3,Vector<double>(2,0.0));
  
-   // Loop over all (three) nodes of the element
+   // Loop over all (three) nodes of the element and record boundary nodes
+   unsigned index_of_interior_node=3,nnode_on_neither_boundary = 0;
    const unsigned nnode = 3;
-   unsigned nnode_on_neither_boundary = 0;
+   // Fill in vertices' positions (this step should be moved inside the curveable
+   // Bell element)
+   Vector<Vector<double> > xn(nnode,Vector<double>(2,0.0));
    for(unsigned n=0;n<nnode;++n)
     {
-     // If it is on boundary
      Node* nod_pt = bulk_el_pt->node_pt(n);
-
      xn[n][0]=nod_pt->x(0);
      xn[n][1]=nod_pt->x(1);
 
      // Check if it is on the outer boundaries
      if(!(nod_pt->is_on_boundary(Outer_boundary0) || 
-        nod_pt->is_on_boundary(Outer_boundary1)))
+          nod_pt->is_on_boundary(Outer_boundary1)))
       {
        index_of_interior_node = n;
        ++nnode_on_neither_boundary;
       }
-    }
+    }// end record boundary nodes
+
    // s at the next (cyclic) node after interior
    const double s_ubar = parametric_curve_pt->get_zeta(xn[(index_of_interior_node+1) % 3]);
    // s at the previous (cyclic) node before interior
    const double s_obar = parametric_curve_pt->get_zeta(xn[(index_of_interior_node+2) % 3]);
-
    // Assign edge case
    edge = static_cast<MyC1CurvedElements::Edge>(index_of_interior_node);
 
@@ -609,34 +600,29 @@ me in if you want additional curved boundaries..",
    if(nnode_on_neither_boundary == 0)
     {
       throw OomphLibError(
-       "No nodes were found that were not on Outer_boundary0 or \
-Outer_boundary1. One node on each CurvedElements must be interior.",
+       "No interior nodes. One node per CurvedElement must be interior.",
        OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
-      break;
      }
    else if (nnode_on_neither_boundary > 1)
      {
       throw OomphLibError(
-       "Multiple nodes were found that were not on Outer_boundary0 or \
-Outer_boundary1. Only a single node on each CurvedElements can be interior.",
+       "Multiple interior nodes. One node per CurvedElement can be interior.",
        OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
-      break;
      }
+
    // Check for inverted elements 
    if (s_ubar>s_obar)
     {
      throw OomphLibError(
-       "The parametric coordinate was found to be decreasing. The paremetric \
-coordinate must increase as the edge is traversed anti-clockwise.",
+       "Decreasing parametric coordinate. Parametric coordinate must increase \
+as the edge is traversed anti-clockwise.",
        OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
-       break;
     }
 
    // Upgrade it
-   bulk_el_pt->upgrade_element_to_curved(edge,s_ubar,s_obar,
-    parametric_curve_pt,3);     
+   bulk_el_pt->upgrade_element_to_curved(edge,s_ubar,s_obar,parametric_curve_pt,3);
   }
-}// end upgrade elements
+}// end_upgrade_elements
 
 // Function to set up rotated nodes on the boundary: necessary if we want to set
 // up physical boundary conditions on a curved boundary with Hermite type dofs.
@@ -722,8 +708,6 @@ some_file << "TEXT X = 22, Y = 92, CS=FRAME T = \""
 some_file.close();
 
 // Number of plot points 
-//(Can output at extremely high resolution BUT to save diskspace limit to 5)
-//(Try it with 50 on very low resolution to see HOW accurate we can be!)
 npts = 5;
 
 sprintf(filename,"RESLT/soln%i-%f.dat",Doc_info.number(),Element_area);
@@ -794,10 +778,7 @@ for (unsigned r = 0; r < n_region; r++)
  GeomObject* geom_obj_pt=0;
  Vector<double> r(2,0.0);
  Mesh_as_geom_obj_pt->locate_zeta(r,geom_obj_pt,s);
- // The member function does not exist in this element
- // it is instead called interpolated_u_foeppl_von_karman and returns a vector of 
- // length 12 or 18 - the interface is pretty horrible so it may be something
- // we want to tidy up
+ // Compute the interpolated displacement vector
  Vector<double> u_0(12,0.0);
  u_0=dynamic_cast<ELEMENT*>(geom_obj_pt)->interpolated_u_foeppl_von_karman(s);
 
