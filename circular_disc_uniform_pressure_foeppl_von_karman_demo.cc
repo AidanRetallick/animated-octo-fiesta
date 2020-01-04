@@ -1,35 +1,35 @@
 //LIC// ====================================================================
-//LIC// This file forms part of oomph-lib, the object-oriented, 
-//LIC// multi-physics finite-element library, available 
+//LIC// This file forms part of oomph-lib, the object-oriented,
+//LIC// multi-physics finite-element library, available
 //LIC// at http://www.oomph-lib.org.
-//LIC// 
+//LIC//
 //LIC//    Version 1.0; svn revision $LastChangedRevision: 1097 $
 //LIC//
 //LIC// $LastChangedDate: 2015-12-17 11:53:17 +0000 (Thu, 17 Dec 2015) $
-//LIC// 
+//LIC//
 //LIC// Copyright (C) 2006-2016 Matthias Heil and Andrew Hazel
-//LIC// 
+//LIC//
 //LIC// This library is free software; you can redistribute it and/or
 //LIC// modify it under the terms of the GNU Lesser General Public
 //LIC// License as published by the Free Software Foundation; either
 //LIC// version 2.1 of the License, or (at your option) any later version.
-//LIC// 
+//LIC//
 //LIC// This library is distributed in the hope that it will be useful,
 //LIC// but WITHOUT ANY WARRANTY; without even the implied warranty of
 //LIC// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 //LIC// Lesser General Public License for more details.
-//LIC// 
+//LIC//
 //LIC// You should have received a copy of the GNU Lesser General Public
 //LIC// License along with this library; if not, write to the Free Software
 //LIC// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 //LIC// 02110-1301  USA.
-//LIC// 
+//LIC//
 //LIC// The authors may be contacted at oomph-lib@maths.man.ac.uk.
-//LIC// 
+//LIC//
 //LIC//====================================================================
-#include <fenv.h> 
+#include <fenv.h>
 //Generic routines
-#include "generic.h" 
+#include "generic.h"
 
 // The equations
 #include "C1_foeppl_von_karman.h"
@@ -43,30 +43,30 @@ using namespace oomph;
 using MathematicalConstants::Pi;
 
 /*                      OUTLINE OF PROBLEM CONSTRUCTION                       */
-// The basic constuction is much the same as the usual order of things in a 
+// The basic constuction is much the same as the usual order of things in a
 // problem. Underneath is the order of actions (with stars next to non actions
 // that are unique to these types of problems).
 // 1.  Setup mesh parameters
 // 2.  Build the mesh
-// 3.* Upgrade Elements 
+// 3.* Upgrade Elements
 //     We upgrade edge elements on relevant boundaries to be curved C1 elements.
 //     This involves working out which edge is to be upgraded and then passing
-//     information about the global curve and start and end points of the 
+//     information about the global curve and start and end points of the
 //     element edge on that curve to the element.
 // 4.* Rotate edge degrees of freedom.
-//     We rotate the Hermite dofs that lie on the edge into the normal - 
-//     tangential basis so that we can set physical boundary conditions like 
+//     We rotate the Hermite dofs that lie on the edge into the normal -
+//     tangential basis so that we can set physical boundary conditions like
 //     clamping or resting conditions.
 // 5.  Complete problem Setup and set Boundary conditions.
 
 /*                            REQUIRED DEFINITIONS                            */
 // Per Curve Section we will need:
 // 1.  A parametric function defining the curve section.
-// 2.  The tangential derivative of the parametric function defining 
+// 2.  The tangential derivative of the parametric function defining
 //     the curve section.
 // 3.* (For 5 order boundary representation) The second tangential derivative
 //     of the parametric function defining the curve section.
-// 4.  A unit normal and tangent to each curve section and corresponding 
+// 4.  A unit normal and tangent to each curve section and corresponding
 //     derivatives, to allow the rotation of boundary coordinates.
 // It also convenient to define:
 // 1.  An inverse function (x,y) -> s (the arc coordinate) to help in setting
@@ -78,19 +78,19 @@ namespace TestSoln
 double A = 1.0;
 double B = 1.0;
 // The coupling of the stretching energy
-double p_mag = 1; 
+double p_mag = 1;
 double nu = 0.5;
 double eta = 12*(1-nu*nu);
 double eta_david =1.0;
 
 /*                     PARAMETRIC BOUNDARY DEFINITIONS                        */
-// Here we create the geom objects for the Parametric Boundary Definition 
+// Here we create the geom objects for the Parametric Boundary Definition
 CurvilineCircleTop parametric_curve_top;
 CurvilineCircleBottom parametric_curve_bottom;
 
 // The normal and tangential directions. We need the derivatives so we can form
 // The Hessian and the Jacobian of the rotation
-void get_normal_and_tangent(const Vector<double>& x, Vector<double>& n, 
+void get_normal_and_tangent(const Vector<double>& x, Vector<double>& n,
  Vector<double>& t, DenseMatrix<double>& Dn, DenseMatrix<double>& Dt)
 {
  // Fill in the normal and derivatives of the normal
@@ -108,7 +108,7 @@ void get_normal_and_tangent(const Vector<double>& x, Vector<double>& n,
  t[1] = x[0]/sqrt(x[0]*x[0]+x[1]*x[1]);
 
  Dt(0,0) =-Dn(1,0);
- Dt(1,0) = Dn(0,0); 
+ Dt(1,0) = Dn(0,0);
  Dt(0,1) =-Dn(1,1);
  Dt(1,1) = Dn(0,1);
 }
@@ -137,7 +137,7 @@ void get_in_plane_force(const Vector<double>& x, Vector<double>& grad)
  }
 
 // This metric will flag up any non--axisymmetric parts
-void axiasymmetry_metric(const Vector<double>& x, const 
+void axiasymmetry_metric(const Vector<double>& x, const
   Vector<double>& u, const Vector<double>& u_exact, double& error, double& norm)
 {
  // We use the theta derivative of the out of plane deflection
@@ -218,7 +218,7 @@ void doc_solution(const std::string& comment="");
 /// the actual mesh type.
 TriangleMesh<ELEMENT>* mesh_pt()
 {
-return dynamic_cast<TriangleMesh<ELEMENT>*> (Problem::mesh_pt()); 
+return dynamic_cast<TriangleMesh<ELEMENT>*> (Problem::mesh_pt());
 }
 
 /// Doc info object for labeling output
@@ -230,7 +230,7 @@ private:
 // This is the data used to set-up the mesh, we need to store the pointers
 // HERE otherwise we will not be able to clean up the memory once we have
 // finished the problem.
-Ellipse* Outer_boundary_ellipse_pt; 
+Ellipse* Outer_boundary_ellipse_pt;
 // The outer curves
 Vector<TriangleMeshCurveSection*> Outer_curvilinear_boundary_pt;
 // The Internal curves
@@ -254,7 +254,7 @@ void actions_after_read_unstructured_meshes()
  complete_problem_setup();
  // Apply any boundary conditions
  apply_boundary_conditions();
- } 
+ }
 
 /// Helper function to apply boundary conditions
 void apply_boundary_conditions();
@@ -279,7 +279,7 @@ double Element_area;
 
 /// \short Loop over all curved edges, then loop over elements and upgrade
 /// them to be curved elements
-void upgrade_edge_elements_to_curve(const unsigned &b, Mesh* const & 
+void upgrade_edge_elements_to_curve(const unsigned &b, Mesh* const &
  bulk_mesh_pt);
 
 /// \short Loop over all edge elements and rotate the Hermite degrees of freedom
@@ -347,7 +347,7 @@ Inner_open_boundaries_pt.resize(n_open_curves);
  Vector<Vector<double> > vertices(2,Vector<double>(2,0.0));
  vertices[0][0] =-0.5;
  vertices[0][1] = 0.0;
- 
+
  vertices[1][0] = 0.5;
  vertices[1][1] = 0.0;
  unsigned boundary_id = Inner_boundary0;
@@ -357,7 +357,7 @@ Inner_open_boundaries_pt.resize(n_open_curves);
 // Open Curve 2
  vertices[0][0] = 0.0;
  vertices[0][1] =-0.5;
- 
+
  vertices[1][0] = 0.0;
  vertices[1][1] = 0.5;
  boundary_id = Inner_boundary1;
@@ -410,7 +410,7 @@ build_global_mesh();
 // Curved Edge upgrade
 upgrade_edge_elements_to_curve(0,Bulk_mesh_pt);
 upgrade_edge_elements_to_curve(1,Bulk_mesh_pt);
- 
+
 // Rotate degrees of freedom
 rotate_edge_degrees_of_freedom(Bulk_mesh_pt);
 
@@ -426,7 +426,7 @@ oomph_info << "Number of equations: "
 }
 
 //==start_of_complete======================================================
-/// Set boundary condition exactly, and complete the build of 
+/// Set boundary condition exactly, and complete the build of
 /// all elements
 //========================================================================
 template<class ELEMENT>
@@ -443,7 +443,7 @@ for (unsigned inod=0;inod<num_int_nod;inod++)
  if( nod_pt->is_on_boundary(3))
  {
   // Pin it! It's the centre of the domain!
-  // In-plane dofs are always 0 and 1 - on vertex nodes we also have 
+  // In-plane dofs are always 0 and 1 - on vertex nodes we also have
   // out-of-plane dofs from 2-7.
   nod_pt->pin(0);
   nod_pt->set_value(0,0.0);
@@ -455,17 +455,17 @@ for (unsigned inod=0;inod<num_int_nod;inod++)
 }
 
 //==start_of_complete======================================================
-/// Set boundary condition exactly, and complete the build of 
+/// Set boundary condition exactly, and complete the build of
 /// all elements
 //========================================================================
 template<class ELEMENT>
 void UnstructuredFvKProblem<ELEMENT>::complete_problem_setup()
-{   
+{
 // Set the boundary conditions for problem: All nodes are
 // free by default -- just pin the ones that have Dirichlet conditions
-// here. 
+// here.
 
-// The node at the very centre should be pinned when we have "do-nothing" 
+// The node at the very centre should be pinned when we have "do-nothing"
 // conditions on the in-plane displacements (i.e stress free b/c)
 pin_in_plane_displacements_at_centre_node();
 
@@ -478,7 +478,7 @@ ELEMENT* el_pt = dynamic_cast<ELEMENT*>(Bulk_mesh_pt->element_pt(e));
 
 //Set the pressure function pointers and the physical constants
 el_pt->pressure_fct_pt() = &TestSoln::get_pressure;
-el_pt->in_plane_forcing_fct_pt() = &TestSoln::get_in_plane_force;  
+el_pt->in_plane_forcing_fct_pt() = &TestSoln::get_in_plane_force;
 // There is no error metric in this case
 el_pt->error_metric_fct_pt() = &TestSoln::axiasymmetry_metric;
 el_pt->nu_pt() = &TestSoln::nu;
@@ -529,34 +529,34 @@ for(unsigned b=0;b<nbound;b++)
 /*         /._._)                                                             */
 /*      i @     @ j                                                           */
 // For RESTING or FREE boundaries we need to have a C2 CONTINUOUS boundary
-// representation. That is we need to have a continuous 2nd derivative defined 
-// too. This is well discussed in by [Zenisek 1981] (Aplikace matematiky , 
-// Vol. 26 (1981), No. 2, 121--141). This results in the necessity for F''(s) 
+// representation. That is we need to have a continuous 2nd derivative defined
+// too. This is well discussed in by [Zenisek 1981] (Aplikace matematiky ,
+// Vol. 26 (1981), No. 2, 121--141). This results in the necessity for F''(s)
 // as well.
 //==start_of_upgrade_edge_elements============================================
 template <class ELEMENT>
 void UnstructuredFvKProblem<ELEMENT >::
-upgrade_edge_elements_to_curve(const unsigned &ibound, Mesh* const &bulk_mesh_pt) 
+upgrade_edge_elements_to_curve(const unsigned &ibound, Mesh* const &bulk_mesh_pt)
 {
  // These depend on the boundary we are on
- CurvilineGeomObject* parametric_curve_pt; 
+ CurvilineGeomObject* parametric_curve_pt;
 
  // Define the functions for each part of the boundary
  switch (ibound)
   {
   case 0:
-   parametric_curve_pt = &TestSoln::parametric_curve_top; 
+   parametric_curve_pt = &TestSoln::parametric_curve_top;
   break;
   case 1:
    parametric_curve_pt = &TestSoln::parametric_curve_bottom;
   break;
   default:
    throw OomphLibError("Unexpected boundary number. Please add additional \
-curved boundaries as required.", OOMPH_CURRENT_FUNCTION, 
+curved boundaries as required.", OOMPH_CURRENT_FUNCTION,
     OOMPH_EXCEPTION_LOCATION);
   break;
  }
- 
+
  // Loop over the bulk elements adjacent to boundary ibound
  const unsigned n_els=bulk_mesh_pt->nboundary_element(ibound);
  for(unsigned e=0; e<n_els; e++)
@@ -564,10 +564,10 @@ curved boundaries as required.", OOMPH_CURRENT_FUNCTION,
    // Get pointer to bulk element adjacent to b
    ELEMENT* bulk_el_pt = dynamic_cast<ELEMENT*>(
     bulk_mesh_pt->boundary_element_pt(ibound,e));
-   
+
    // Initialise enum for the curved edge
    MyC1CurvedElements::Edge edge(MyC1CurvedElements::none);
- 
+
    // Loop over all (three) nodes of the element and record boundary nodes
    unsigned index_of_interior_node=3,nnode_on_neither_boundary = 0;
    const unsigned nnode = 3;
@@ -581,7 +581,7 @@ curved boundaries as required.", OOMPH_CURRENT_FUNCTION,
      xn[n][1]=nod_pt->x(1);
 
      // Check if it is on the outer boundaries
-     if(!(nod_pt->is_on_boundary(Outer_boundary0) || 
+     if(!(nod_pt->is_on_boundary(Outer_boundary0) ||
           nod_pt->is_on_boundary(Outer_boundary1)))
       {
        index_of_interior_node = n;
@@ -610,7 +610,7 @@ curved boundaries as required.", OOMPH_CURRENT_FUNCTION,
        OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
      }
 
-   // Check for inverted elements 
+   // Check for inverted elements
    if (s_ubar>s_obar)
     {
      throw OomphLibError(
@@ -626,22 +626,22 @@ as the edge is traversed anti-clockwise.",
 
 // Function to set up rotated nodes on the boundary: necessary if we want to set
 // up physical boundary conditions on a curved boundary with Hermite type dofs.
-// For example if we know w(n,t) = f(t) (where n and t are the 
-// normal and tangent to a boundary) we ALSO know dw/dt and d2w/dt2. 
-// NB no rotation is needed if the edges are completely free! 
+// For example if we know w(n,t) = f(t) (where n and t are the
+// normal and tangent to a boundary) we ALSO know dw/dt and d2w/dt2.
+// NB no rotation is needed if the edges are completely free!
 template <class ELEMENT>
 void UnstructuredFvKProblem<ELEMENT>::
 rotate_edge_degrees_of_freedom( Mesh* const &bulk_mesh_pt)
 {
  // How many bulk elements
  unsigned n_element = bulk_mesh_pt-> nelement();
- 
+
  // Loop over the bulk elements adjacent to boundary b
  for(unsigned e=0; e<n_element; e++)
   {
    // Get pointer to bulk element adjacent to b
    ELEMENT* el_pt = dynamic_cast<ELEMENT*>(Bulk_mesh_pt->element_pt(e));
- 
+
    // Loop nodes
    unsigned nnode =3;
    unsigned nbnode=0;
@@ -656,7 +656,7 @@ rotate_edge_degrees_of_freedom( Mesh* const &bulk_mesh_pt)
        {nbnode+=unsigned(el_pt->node_pt(n)->is_on_boundary());}
      }
 
-   // Now if we have nodes on boundary in this element 
+   // Now if we have nodes on boundary in this element
    if(nbnode>0)
     {
      // Set up vector
@@ -680,7 +680,7 @@ rotate_edge_degrees_of_freedom( Mesh* const &bulk_mesh_pt)
         }
        }
       }
-    // Now rotate the nodes by passing the index of the nodes and the 
+    // Now rotate the nodes by passing the index of the nodes and the
     // normal / tangent vectors to the element
     el_pt->set_up_rotated_dofs(nbnode,bnode,&TestSoln::get_normal_and_tangent);
    }
@@ -691,9 +691,9 @@ rotate_edge_degrees_of_freedom( Mesh* const &bulk_mesh_pt)
 /// Doc the solution
 //========================================================================
 template<class ELEMENT>
-void UnstructuredFvKProblem<ELEMENT>::doc_solution(const 
+void UnstructuredFvKProblem<ELEMENT>::doc_solution(const
                                                     std::string& comment)
-{ 
+{
 ofstream some_file;
 char filename[100];
 
@@ -702,18 +702,18 @@ unsigned npts = 2;
 
 sprintf(filename,"RESLT/coarse_soln%i-%f.dat",Doc_info.number(),Element_area);
 some_file.open(filename);
-Bulk_mesh_pt->output(some_file,npts); 
-some_file << "TEXT X = 22, Y = 92, CS=FRAME T = \"" 
+Bulk_mesh_pt->output(some_file,npts);
+some_file << "TEXT X = 22, Y = 92, CS=FRAME T = \""
        << comment << "\"\n";
 some_file.close();
 
-// Number of plot points 
+// Number of plot points
 npts = 5;
 
 sprintf(filename,"RESLT/soln%i-%f.dat",Doc_info.number(),Element_area);
 some_file.open(filename);
-Bulk_mesh_pt->output(some_file,npts); 
-some_file << "TEXT X = 22, Y = 92, CS=FRAME T = \"" 
+Bulk_mesh_pt->output(some_file,npts);
+some_file << "TEXT X = 22, Y = 92, CS=FRAME T = \""
        << comment << "\"\n";
 some_file.close();
 
@@ -721,8 +721,8 @@ some_file.close();
 sprintf(filename,"%s/pressure%i-%f.dat","RESLT",Doc_info.number()
  ,Element_area);
 some_file.open(filename);
-Bulk_mesh_pt->output_fct(some_file,npts,TestSoln::get_pressure); 
-some_file << "TEXT X = 22, Y = 92, CS=FRAME T = \"" 
+Bulk_mesh_pt->output_fct(some_file,npts,TestSoln::get_pressure);
+some_file << "TEXT X = 22, Y = 92, CS=FRAME T = \""
        << comment << "\"\n";
 some_file.close();
 
@@ -758,18 +758,18 @@ for (unsigned r = 0; r < n_region; r++)
  double dummy_error,zero_norm;
  sprintf(filename,"RESLT/error%i-%f.dat",Doc_info.number(),Element_area);
  some_file.open(filename);
- 
+
  Bulk_mesh_pt->compute_error(some_file,TestSoln::dummy_exact_w,
                         dummy_error,zero_norm);
  some_file.close();
- 
+
  // Doc L2 error and norm of solution
- oomph_info << "Absolute norm of computed solution: " << sqrt(dummy_error) 
+ oomph_info << "Absolute norm of computed solution: " << sqrt(dummy_error)
             << std::endl;
- 
+
  oomph_info << "Norm of computed solution: " << sqrt(zero_norm)
             << std::endl;
- 
+
  // Find the solution at r=0
  //   // ----------------------
  MeshAsGeomObject* Mesh_as_geom_obj_pt=
@@ -846,7 +846,7 @@ int main(int argc, char **argv)
 
  // Poisson Ratio
  CommandLineArgs::specify_command_line_flag("--nu", &TestSoln::nu);
- 
+
  // Applied Pressure
  CommandLineArgs::specify_command_line_flag("--p", &TestSoln::p_mag);
 
@@ -858,7 +858,7 @@ int main(int argc, char **argv)
  CommandLineArgs::specify_command_line_flag("--element_area", &element_area);
 
  // Parse command line
- CommandLineArgs::parse_and_assign(); 
+ CommandLineArgs::parse_and_assign();
 
  // Doc what has actually been specified on the command line
  CommandLineArgs::doc_specified_flags();
