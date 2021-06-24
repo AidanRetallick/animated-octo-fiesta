@@ -193,6 +193,9 @@ UnstructuredFvKProblem(double element_area = 0.09);
  delete Boundary3_pt;
 };
 
+/// Setup and build the mesh
+void build_mesh();
+
 /// Update after solve (empty)
 void actions_after_newton_solve()
 {
@@ -297,115 +300,14 @@ Mesh* Surface_mesh_pt;
 
 }; // end_of_problem_class
 
-/// Constructor
+/// Constructor definition
 template<class ELEMENT>
 UnstructuredFvKProblem<ELEMENT>::UnstructuredFvKProblem(double element_area)
 :
 Element_area(element_area)
 {
-Vector<double> zeta(1);
-Vector<double> posn(2);
-
-//Outer boundary
-//--------------
-
-double A = 1.0;
-double B = 1.0;
-Outer_boundary_ellipse_pt = new Ellipse(A, B);
-
-//First bit
-double zeta_start = 0.0;
-double zeta_end = MathematicalConstants::Pi;
-unsigned nsegment = (int)(MathematicalConstants::Pi/sqrt(element_area));
-
-Outer_curvilinear_boundary_pt.resize(2);
-Outer_curvilinear_boundary_pt[0] =
-new TriangleMeshCurviLine(Outer_boundary_ellipse_pt, zeta_start,
-zeta_end, nsegment, Outer_boundary0);
-
-//Second bit
-zeta_start = MathematicalConstants::Pi;
-zeta_end = 2.0*MathematicalConstants::Pi;
-nsegment = (int)(MathematicalConstants::Pi/sqrt(element_area));
-Outer_curvilinear_boundary_pt[1] =
-new TriangleMeshCurviLine(Outer_boundary_ellipse_pt, zeta_start,
-zeta_end, nsegment, Outer_boundary1);
-
-Outer_boundary_pt =
-new TriangleMeshClosedCurve(Outer_curvilinear_boundary_pt);
-
-// Internal open boundaries
-// Total number of open curves in the domain
-unsigned n_open_curves = 2;
-// We want internal open curves
-Inner_open_boundaries_pt.resize(n_open_curves);
-
-// Internal bit - this means we can have a boundary which is just the centre
-// We start by creating the internal boundaries
-// The boundary 2 is defined by its two vertices
-// Open curve 1
- Vector<Vector<double> > vertices(2,Vector<double>(2,0.0));
- vertices[0][0] =-0.5;
- vertices[0][1] = 0.0;
-
- vertices[1][0] = 0.5;
- vertices[1][1] = 0.0;
- unsigned boundary_id = Inner_boundary0;
-
- Boundary2_pt =
-   new TriangleMeshPolyLine(vertices, boundary_id);
-// Open Curve 2
- vertices[0][0] = 0.0;
- vertices[0][1] =-0.5;
-
- vertices[1][0] = 0.0;
- vertices[1][1] = 0.5;
- boundary_id = Inner_boundary1;
-
- Boundary3_pt =
-   new TriangleMeshPolyLine(vertices, boundary_id);
-
-// Each internal open curve is defined by a vector of
-// TriangleMeshCurveSection,
-// on this example we only need one curve section for each internal boundary
- Vector<TriangleMeshCurveSection *> internal_curve_section1_pt(1);
- internal_curve_section1_pt[0] = Boundary2_pt;
-
- Vector<TriangleMeshCurveSection *> internal_curve_section2_pt(1);
- internal_curve_section2_pt[0] = Boundary3_pt;
-
-// The open curve that define this boundary is composed of just one
-// curve section
- Inner_open_boundaries_pt[0] =
-    new TriangleMeshOpenCurve(internal_curve_section1_pt);
-
- Inner_open_boundaries_pt[1] =
-    new TriangleMeshOpenCurve(internal_curve_section2_pt);
-
-//Create the mesh
-//---------------
-//Create mesh parameters object
-TriangleMeshParameters mesh_parameters(Outer_boundary_pt);
-
-mesh_parameters.element_area() = element_area;
-
-// Specify the internal open boundaries
-mesh_parameters.internal_open_curves_pt() = Inner_open_boundaries_pt;
-
-// Build an assign bulk mesh
-Bulk_mesh_pt=new TriangleMesh<ELEMENT>(mesh_parameters);
-
-// Create "surface mesh" that will contain only the prescribed-traction
-// elements. The constructor creates the mesh without adding any nodes
-// elements etc.
-Surface_mesh_pt =  new Mesh;
-
-//Add two submeshes to problem
-add_sub_mesh(Bulk_mesh_pt);
-add_sub_mesh(Surface_mesh_pt);
-
-// Combine submeshes into a single Mesh
-build_global_mesh();
+// Build the mesh
+build_mesh();
 
 // Curved Edge upgrade
 upgrade_edge_elements_to_curve(0,Bulk_mesh_pt);
@@ -423,7 +325,115 @@ Trace_file.open(filename);
 
 oomph_info << "Number of equations: "
         << assign_eqn_numbers() << '\n';
-}
+} // end Constructor
+
+/// Set up and build the mesh
+void UnstructuredFvKProblem::build_mesh()
+{
+ Vector<double> zeta(1);
+ Vector<double> posn(2);
+ 
+ //Outer boundary
+ //--------------
+ 
+ double A = 1.0;
+ double B = 1.0;
+ Outer_boundary_ellipse_pt = new Ellipse(A, B);
+ 
+ //First bit
+ double zeta_start = 0.0;
+ double zeta_end = MathematicalConstants::Pi;
+ unsigned nsegment = (int)(MathematicalConstants::Pi/sqrt(element_area));
+ 
+ Outer_curvilinear_boundary_pt.resize(2);
+ Outer_curvilinear_boundary_pt[0] =
+ new TriangleMeshCurviLine(Outer_boundary_ellipse_pt, zeta_start,
+ zeta_end, nsegment, Outer_boundary0);
+ 
+ //Second bit
+ zeta_start = MathematicalConstants::Pi;
+ zeta_end = 2.0*MathematicalConstants::Pi;
+ nsegment = (int)(MathematicalConstants::Pi/sqrt(element_area));
+ Outer_curvilinear_boundary_pt[1] =
+ new TriangleMeshCurviLine(Outer_boundary_ellipse_pt, zeta_start,
+ zeta_end, nsegment, Outer_boundary1);
+ 
+ Outer_boundary_pt =
+ new TriangleMeshClosedCurve(Outer_curvilinear_boundary_pt);
+ 
+ // Internal open boundaries
+ // Total number of open curves in the domain
+ unsigned n_open_curves = 2;
+ // We want internal open curves
+ Inner_open_boundaries_pt.resize(n_open_curves);
+ 
+ // Internal bit - this means we can have a boundary which is just the centre
+ // We start by creating the internal boundaries
+ // The boundary 2 is defined by its two vertices
+ // Open curve 1
+ Vector<Vector<double> > vertices(2,Vector<double>(2,0.0));
+ vertices[0][0] =-0.5;
+ vertices[0][1] = 0.0;
+
+ vertices[1][0] = 0.5;
+ vertices[1][1] = 0.0;
+ unsigned boundary_id = Inner_boundary0;
+
+ Boundary2_pt =
+   new TriangleMeshPolyLine(vertices, boundary_id);
+ // Open Curve 2
+ vertices[0][0] = 0.0;
+ vertices[0][1] =-0.5;
+
+ vertices[1][0] = 0.0;
+ vertices[1][1] = 0.5;
+ boundary_id = Inner_boundary1;
+
+ Boundary3_pt =
+   new TriangleMeshPolyLine(vertices, boundary_id);
+
+ // Each internal open curve is defined by a vector of
+ // TriangleMeshCurveSection,
+ // on this example we only need one curve section for each internal boundary
+ Vector<TriangleMeshCurveSection *> internal_curve_section1_pt(1);
+ internal_curve_section1_pt[0] = Boundary2_pt;
+
+ Vector<TriangleMeshCurveSection *> internal_curve_section2_pt(1);
+ internal_curve_section2_pt[0] = Boundary3_pt;
+
+ // The open curve that define this boundary is composed of just one
+ // curve section
+ Inner_open_boundaries_pt[0] =
+    new TriangleMeshOpenCurve(internal_curve_section1_pt);
+
+ Inner_open_boundaries_pt[1] =
+    new TriangleMeshOpenCurve(internal_curve_section2_pt);
+
+ //Create the mesh
+ //---------------
+ //Create mesh parameters object
+ TriangleMeshParameters mesh_parameters(Outer_boundary_pt);
+ 
+ mesh_parameters.element_area() = element_area;
+ 
+ // Specify the internal open boundaries
+ mesh_parameters.internal_open_curves_pt() = Inner_open_boundaries_pt;
+ 
+ // Build an assign bulk mesh
+ Bulk_mesh_pt=new TriangleMesh<ELEMENT>(mesh_parameters);
+ 
+ // Create "surface mesh" that will contain only the prescribed-traction
+ // elements. The constructor creates the mesh without adding any nodes
+ // elements etc.
+ Surface_mesh_pt =  new Mesh;
+ 
+ //Add two submeshes to problem
+ add_sub_mesh(Bulk_mesh_pt);
+ add_sub_mesh(Surface_mesh_pt);
+ 
+ // Combine submeshes into a single Mesh
+ build_global_mesh();
+}// end build_mesh
 
 //==start_of_complete======================================================
 /// Set boundary condition exactly, and complete the build of
@@ -555,7 +565,7 @@ upgrade_edge_elements_to_curve(const unsigned &ibound, Mesh* const &bulk_mesh_pt
 curved boundaries as required.", OOMPH_CURRENT_FUNCTION,
     OOMPH_EXCEPTION_LOCATION);
   break;
- }
+ } // end parametric curve switch
 
  // Loop over the bulk elements adjacent to boundary ibound
  const unsigned n_els=bulk_mesh_pt->nboundary_element(ibound);
@@ -606,7 +616,7 @@ curved boundaries as required.", OOMPH_CURRENT_FUNCTION,
    else if (nnode_on_neither_boundary > 1)
      {
       throw OomphLibError(
-       "Multiple interior nodes. One node per CurvedElement can be interior.",
+       "Multiple interior nodes. Only one node per CurvedElement can be interior.",
        OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
      }
 
@@ -617,7 +627,7 @@ curved boundaries as required.", OOMPH_CURRENT_FUNCTION,
        "Decreasing parametric coordinate. Parametric coordinate must increase \
 as the edge is traversed anti-clockwise.",
        OOMPH_CURRENT_FUNCTION, OOMPH_EXCEPTION_LOCATION);
-    }
+    } // end checks
 
    // Upgrade it
    bulk_el_pt->upgrade_element_to_curved(edge,s_ubar,s_obar,parametric_curve_pt,3);
