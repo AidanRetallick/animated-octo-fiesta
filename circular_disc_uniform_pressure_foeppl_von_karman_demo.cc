@@ -328,7 +328,8 @@ oomph_info << "Number of equations: "
 } // end Constructor
 
 /// Set up and build the mesh
-void UnstructuredFvKProblem::build_mesh()
+template<class ELEMENT>
+void UnstructuredFvKProblem<ELEMENT>::build_mesh()
 {
  Vector<double> zeta(1);
  Vector<double> posn(2);
@@ -343,7 +344,7 @@ void UnstructuredFvKProblem::build_mesh()
  //First bit
  double zeta_start = 0.0;
  double zeta_end = MathematicalConstants::Pi;
- unsigned nsegment = (int)(MathematicalConstants::Pi/sqrt(element_area));
+ unsigned nsegment = (int)(MathematicalConstants::Pi/sqrt(Element_area));
  
  Outer_curvilinear_boundary_pt.resize(2);
  Outer_curvilinear_boundary_pt[0] =
@@ -353,7 +354,7 @@ void UnstructuredFvKProblem::build_mesh()
  //Second bit
  zeta_start = MathematicalConstants::Pi;
  zeta_end = 2.0*MathematicalConstants::Pi;
- nsegment = (int)(MathematicalConstants::Pi/sqrt(element_area));
+ nsegment = (int)(MathematicalConstants::Pi/sqrt(Element_area));
  Outer_curvilinear_boundary_pt[1] =
  new TriangleMeshCurviLine(Outer_boundary_ellipse_pt, zeta_start,
  zeta_end, nsegment, Outer_boundary1);
@@ -414,7 +415,7 @@ void UnstructuredFvKProblem::build_mesh()
  //Create mesh parameters object
  TriangleMeshParameters mesh_parameters(Outer_boundary_pt);
  
- mesh_parameters.element_area() = element_area;
+ mesh_parameters.element_area() = Element_area;
  
  // Specify the internal open boundaries
  mesh_parameters.internal_open_curves_pt() = Inner_open_boundaries_pt;
